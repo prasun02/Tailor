@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Tailor Store Manager">
+  <rect width="64" height="64" rx="12" fill="#0f766e"/>
+  <path d="M19 17h26l-5 11v20H24V28L19 17Z" fill="#f8fafc"/>
+  <path d="M24 17c2 5 5 8 8 8s6-3 8-8" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M29 31h6M29 38h6" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+</svg>
