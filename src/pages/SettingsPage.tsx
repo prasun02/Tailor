@@ -1,9 +1,10 @@
-import { Ruler, Settings, Shirt, SlidersHorizontal } from 'lucide-react';
+import { Images, Ruler, Settings, Shirt, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PageScaffold } from '../components/PageScaffold';
 
 const settingsLinks = [
   { to: '/settings/garments', label: 'Garment types', description: 'Create, sort, archive, and restore configurable garments.', icon: Shirt },
+  { to: '/settings/designs', label: 'Design library', description: 'Manage sample designs, media URLs, cloth references, and style preview metadata.', icon: Images },
   { to: '/settings/measurement-fields', label: 'Measurement fields', description: 'Configure body measurement fields, ranges, units, and requirements.', icon: Ruler },
   { to: '/settings/style-fields', label: 'Style fields', description: 'Configure style preference fields and option ordering for order creation.', icon: SlidersHorizontal },
 ];
@@ -11,7 +12,7 @@ const settingsLinks = [
 export function SettingsPage() {
   return (
     <PageScaffold icon={Settings} title="Settings" description="Configure garments, measurement fields, and style preferences for this shop.">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {settingsLinks.map((item) => {
           const Icon = item.icon;
 

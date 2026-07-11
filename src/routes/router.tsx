@@ -6,13 +6,13 @@ import { PublicLayout } from '../layouts/PublicLayout';
 import { ConfigurationErrorPage } from '../pages/ConfigurationErrorPage';
 import { RequireAuth, RequireConfiguration, RequireShop } from './RouteGuards';
 
-function pageModule<TModule extends Record<string, ComponentType>, TKey extends keyof TModule & string>(
+function pageModule<TModule extends object, TKey extends keyof TModule & string>(
   load: () => Promise<TModule>,
   componentName: TKey,
 ) {
   return async () => {
     const module = await load();
-    return { Component: module[componentName] };
+    return { Component: module[componentName] as ComponentType };
   };
 }
 
@@ -90,6 +90,23 @@ export const router = createBrowserRouter([
       { path: 'orders', lazy: pageModule(() => import('../pages/OrdersPage'), 'OrdersPage') },
       { path: 'orders/new', lazy: pageModule(() => import('../pages/NewOrderPage'), 'NewOrderPage') },
       { path: 'entry/new-order', element: <Navigate to="/orders/new" replace /> },
+      { path: 'orders/:orderId/success', lazy: pageModule(() => import('../pages/OrderSuccessPage'), 'OrderSuccessPage') },
+      {
+        path: 'orders/:orderId/print/customer-token',
+        lazy: pageModule(() => import('../pages/OrderPrintPage'), 'CustomerTokenPrintPage'),
+      },
+      {
+        path: 'orders/:orderId/print/production-copy',
+        lazy: pageModule(() => import('../pages/OrderPrintPage'), 'ProductionCopyPrintPage'),
+      },
+      {
+        path: 'orders/:orderId/print/store-copy',
+        lazy: pageModule(() => import('../pages/OrderPrintPage'), 'StoreCopyPrintPage'),
+      },
+      {
+        path: 'orders/:orderId/print/all',
+        lazy: pageModule(() => import('../pages/OrderPrintPage'), 'AllCopiesPrintPage'),
+      },
       { path: 'orders/:orderId', lazy: pageModule(() => import('../pages/OrderDetailPage'), 'OrderDetailPage') },
       { path: 'orders/:orderId/edit', lazy: pageModule(() => import('../pages/EditOrderPage'), 'EditOrderPage') },
       {
@@ -118,6 +135,10 @@ export const router = createBrowserRouter([
       {
         path: 'settings/style-fields',
         lazy: pageModule(() => import('../pages/StyleFieldsSettingsPage'), 'StyleFieldsSettingsPage'),
+      },
+      {
+        path: 'settings/designs',
+        lazy: pageModule(() => import('../pages/DesignLibrarySettingsPage'), 'DesignLibrarySettingsPage'),
       },
     ],
   },

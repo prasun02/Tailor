@@ -1,4 +1,4 @@
-import { AlertTriangle, Banknote, CalendarClock, PackageCheck, Plus, Search, Shirt } from 'lucide-react';
+import { AlertTriangle, Banknote, CalendarClock, Images, PackageCheck, Plus, Search, Shirt, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
@@ -8,8 +8,10 @@ import { useShop } from '../features/shop/shopContext';
 import { formatCurrency, formatDate } from '../utils/format';
 
 const quickActions = [
-  { to: '/orders/new', label: 'New Customer Order', icon: Plus, primary: true },
+  { to: '/orders/new', label: 'New Design Order', icon: Sparkles, primary: true },
+  { to: '/orders/new', label: 'New Customer Order', icon: Plus },
   { to: '/token-search', label: 'Search Token / Customer', icon: Search },
+  { to: '/settings/designs', label: 'Design Library', icon: Images },
   { to: '/deliveries', label: 'Today Delivery', icon: PackageCheck },
   { to: '/production', label: 'Production Board', icon: Shirt },
   { to: '/payments', label: 'Due Payments', icon: Banknote },
@@ -32,12 +34,12 @@ export function DashboardPage() {
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">Start new orders, track delivery pressure, production work, and due balances.</p>
         </div>
         <Link to="/orders/new" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          New Customer Order
+          <Sparkles aria-hidden="true" className="h-5 w-5" />
+          New Design Order
         </Link>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {quickActions.map((action) => {
           const Icon = action.icon;
           return (

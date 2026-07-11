@@ -19,7 +19,12 @@ export type CreateOrderPayload = {
     assigned_to: string | null;
     production_status: 'order_received';
     item_delivery_date: string | null;
+    design_id: string | null;
+    design_snapshot: Record<string, unknown>;
+    preview_summary: Record<string, unknown>;
     design_reference_url: string | null;
+    fabric_reference_url: string | null;
+    preview_video_url: string | null;
   }>;
   advance_payment: {
     amount: number;
@@ -58,7 +63,12 @@ export function buildCreateOrderPayload(
       assigned_to: nullableText(item.assignedTo),
       production_status: 'order_received' as const,
       item_delivery_date: nullableText(item.itemDeliveryDate),
+      design_id: nullableText(item.designId),
+      design_snapshot: item.designSnapshot,
+      preview_summary: item.previewSummary,
       design_reference_url: nullableText(item.designReferenceUrl),
+      fabric_reference_url: nullableText(item.fabricReferenceUrl),
+      preview_video_url: nullableText(item.previewVideoUrl),
     };
   });
 

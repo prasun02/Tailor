@@ -32,6 +32,7 @@ export function isPaymentState(value: string): value is PaymentState {
 
 const optionalDate = z.string().trim().optional().or(z.literal(''));
 const optionalText = z.string().trim().optional().or(z.literal(''));
+const optionalUrl = optionalText.refine((value) => !value || /^https?:\/\//i.test(value), 'Enter an http or https URL.');
 const nonNegativeNumber = z.coerce.number().min(0, 'Value cannot be negative.');
 
 export const orderItemSchema = z.object({
@@ -48,7 +49,13 @@ export const orderItemSchema = z.object({
   assignedTo: optionalText,
   itemDeliveryDate: optionalDate,
   unitPrice: nonNegativeNumber,
-  designReferenceUrl: optionalText,
+  designId: optionalText,
+  designSnapshot: z.record(z.string(), z.unknown()).default({}),
+  previewSummary: z.record(z.string(), z.unknown()).default({}),
+  designReferenceUrl: optionalUrl,
+  fabricReferenceMode: z.enum(['upload', 'url', 'skip']).default('skip'),
+  fabricReferenceUrl: optionalUrl,
+  previewVideoUrl: optionalUrl,
 }).refine(
   (value) => value.measurementMode === 'new' || Boolean(value.measurementSetId?.trim()),
   { message: 'Select a previous measurement or enter a new one.', path: ['measurementSetId'] },
@@ -129,7 +136,13 @@ export const emptyOrderItem = (): OrderItemFormValues => ({
   assignedTo: '',
   itemDeliveryDate: '',
   unitPrice: 0,
+  designId: '',
+  designSnapshot: {},
+  previewSummary: {},
   designReferenceUrl: '',
+  fabricReferenceMode: 'skip',
+  fabricReferenceUrl: '',
+  previewVideoUrl: '',
 });
 
 export const emptyOrderWizardValues = (): OrderWizardValues => ({

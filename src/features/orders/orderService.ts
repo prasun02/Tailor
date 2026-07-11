@@ -21,7 +21,7 @@ type GarmentTypeRow = Db['public']['Tables']['garment_types']['Row'];
 const ORDER_SELECT =
   'id, shop_id, order_number, customer_id, order_date, trial_date, delivery_date, priority, overall_status, subtotal, discount_amount, total_amount, notes, created_by, delivered_at, created_at, updated_at, deleted_at';
 const ORDER_ITEM_SELECT =
-  'id, shop_id, order_id, garment_type_id, garment_name_snapshot, quantity, unit_price, line_total, measurement_set_id, measurement_snapshot, style_snapshot, special_instructions, assigned_to, production_status, item_delivery_date, design_reference_url, created_at, updated_at';
+  'id, shop_id, order_id, garment_type_id, garment_name_snapshot, quantity, unit_price, line_total, measurement_set_id, measurement_snapshot, style_snapshot, special_instructions, assigned_to, production_status, item_delivery_date, design_reference_url, design_id, design_snapshot, preview_summary, fabric_reference_url, preview_video_url, created_at, updated_at';
 const PAYMENT_SELECT =
   'id, shop_id, order_id, amount, payment_method, payment_status, reference, notes, paid_at, received_by, voided_at, voided_by, void_reason, created_at';
 const CUSTOMER_SELECT =

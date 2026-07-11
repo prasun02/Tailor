@@ -3,6 +3,7 @@ import type { Json } from '../../../types/database';
 import { getStyleOptions } from '../dynamicValidation';
 import type { MeasurementField, StyleField } from '../types';
 import { MissingValue } from './DynamicField';
+import { displayFieldLabel } from '../labelUtils';
 
 export function displayDynamicValue(value: unknown): string | ReactElement {
   if (value === null || value === undefined || value === '') {
@@ -25,11 +26,11 @@ export function optionObjects(options: unknown): { label: string; value: string 
 }
 
 export function measurementFieldLabel(field: MeasurementField): string {
-  return field.label_bn ? `${field.label} / ${field.label_bn}` : field.label;
+  return displayFieldLabel(field.label, field.label_bn);
 }
 
 export function styleFieldLabel(field: StyleField): string {
-  return field.label_bn ? `${field.label} / ${field.label_bn}` : field.label;
+  return displayFieldLabel(field.label, field.label_bn);
 }
 
 export function jsonObject(value: Json): Record<string, unknown> {

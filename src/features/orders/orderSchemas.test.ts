@@ -81,6 +81,11 @@ describe('order filter guards', () => {
       unitPrice: 1500,
       styleValues: { sleeve_type: 'Full sleeve', fit: 'Slim' },
       designReferenceUrl: 'https://example.com/reference.jpg',
+      fabricReferenceUrl: 'https://example.com/cloth.jpg',
+      previewVideoUrl: 'https://example.com/preview.mp4',
+      designId: 'design-shirt-classic',
+      designSnapshot: { design_name: 'Classic Shirt', design_code: 'SHIRT_CLASSIC' },
+      previewSummary: { fit: 'Slim', measurement_count: 2 },
     };
 
     const payload = buildCreateOrderPayload(
@@ -96,6 +101,11 @@ describe('order filter guards', () => {
     expect(payload.items[0].style_snapshot).toEqual({ sleeve_type: 'Full sleeve', fit: 'Slim' });
     expect(payload.items[0].measurement_set_id).toBe('measurement-shirt');
     expect(payload.items[0].design_reference_url).toBe('https://example.com/reference.jpg');
+    expect(payload.items[0].fabric_reference_url).toBe('https://example.com/cloth.jpg');
+    expect(payload.items[0].preview_video_url).toBe('https://example.com/preview.mp4');
+    expect(payload.items[0].design_id).toBe('design-shirt-classic');
+    expect(payload.items[0].design_snapshot).toEqual({ design_name: 'Classic Shirt', design_code: 'SHIRT_CLASSIC' });
+    expect(payload.items[0].preview_summary).toEqual({ fit: 'Slim', measurement_count: 2 });
   });
 
   it('validates payment amount before recording additional or final payment', () => {

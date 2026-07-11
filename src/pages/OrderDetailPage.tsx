@@ -1,5 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
-import { Archive, Banknote, CheckCircle2, ClipboardList, PackageCheck, Printer, ShieldAlert } from 'lucide-react';
+import {
+  Archive,
+  Banknote,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  PackageCheck,
+  Printer,
+  ReceiptText,
+  Scissors,
+  ShieldAlert,
+  type LucideIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -8,8 +19,9 @@ import { displayDynamicValue } from '../features/measurements/components/display
 import { useArchiveOrder, useChangeOrderItemStatus, useConfirmOrderDelivery, useOrderDetail, useVoidOrderPayment } from '../features/orders/orderHooks';
 import { jsonObject } from '../features/orders/orderService';
 import { voidPaymentSchema } from '../features/orders/orderSchemas';
+import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
+import { recordFromUnknown } from '../features/preview/previewUtils';
 import { useShop } from '../features/shop/shopContext';
-import { getSupabaseClient } from '../services/supabaseClient';
 import { canArchiveOrders, canRecordPayments, canVoidPayments } from '../utils/authorization';
 import { cn } from '../utils/cn';
 import { formatCurrency, formatDate, formatDateTime } from '../utils/format';
@@ -18,43 +30,26 @@ export function OrderDetailPage() {
   const navigate = useNavigate();
   const { orderId } = useParams();
   const [searchParams] = useSearchParams();
-  const { currentRole, currentShop, currentShopId } = useShop();
+  const { currentRole, currentShopId } = useShop();
   const orderQuery = useOrderDetail(currentShopId, orderId);
   const archiveOrder = useArchiveOrder(currentShopId ?? '', orderId ?? '');
   const voidPayment = useVoidOrderPayment(currentShopId ?? '', orderId ?? '');
   const changeStatus = useChangeOrderItemStatus(currentShopId ?? '');
   const confirmDelivery = useConfirmOrderDelivery(currentShopId ?? '');
-  const shopContactQuery = useQuery({
-    queryKey: ['shop-contact', currentShopId],
-    queryFn: async () => {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase
-        .from('shops')
-        .select('name, phone, address')
-        .eq('id', currentShopId ?? '')
-        .maybeSingle();
-
-      if (error) throw new Error(error.message);
-      return data as { name: string; phone: string | null; address: string | null } | null;
-    },
-    enabled: Boolean(currentShopId),
-  });
   const [voidPaymentId, setVoidPaymentId] = useState('');
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
 
   useEffect(() => {
-    if (searchParams.get('print') !== 'token') return;
-    const timer = window.setTimeout(() => window.print(), 500);
-    return () => window.clearTimeout(timer);
-  }, [searchParams]);
+    if (searchParams.get('print') !== 'token' || !orderId) return;
+    navigate(`/orders/${orderId}/print/customer-token?autoprint=1`, { replace: true });
+  }, [navigate, orderId, searchParams]);
 
   if (orderQuery.isLoading) return <Loading label="Loading order" />;
   if (orderQuery.isError || !orderQuery.data) return <EmptyState icon={ShieldAlert} title="Order not found" message={orderQuery.error?.message ?? 'Order could not be loaded.'} />;
 
   const detail = orderQuery.data;
   const { order, customer, items, payments, statusHistory, financial } = detail;
-  const shopContact = shopContactQuery.data;
 
   async function handleArchive() {
     if (!window.confirm('Archive this order? Payment and status history will remain available.')) return;
@@ -108,62 +103,67 @@ export function OrderDetailPage() {
           <div className="no-print flex flex-wrap gap-2">
             {canRecordPayments(currentRole) ? <Link to={`/orders/${order.id}/payment`} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"><Banknote aria-hidden="true" className="h-4 w-4" />Add payment</Link> : null}
             <Link to={`/orders/${order.id}/edit`} className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">Edit</Link>
-            <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100"><Printer aria-hidden="true" className="h-4 w-4" />Print token/job card</button>
+            <a href="#print-copies" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100"><Printer aria-hidden="true" className="h-4 w-4" />Print copies</a>
             {canArchiveOrders(currentRole) ? <button type="button" onClick={() => void handleArchive()} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 text-sm font-semibold text-amber-900 hover:bg-amber-100"><Archive aria-hidden="true" className="h-4 w-4" />Archive</button> : null}
           </div>
         </div>
       </header>
 
-      <section className="receipt-print rounded-lg border border-slate-200 bg-white p-5 shadow-panel print:border-0 print:p-0 print:shadow-none">
-        <div className="flex flex-col gap-4 border-b border-dashed border-slate-300 pb-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-950">{shopContact?.name ?? currentShop?.name ?? 'Tailor Shop'}</h2>
-            <p className="mt-1 text-sm text-slate-600">{shopContact?.phone ?? 'Shop phone not set'}</p>
-            <p className="mt-1 text-sm text-slate-600">{shopContact?.address ?? 'Shop address not set'}</p>
-            <p className="mt-1 text-xs text-slate-500">Please bring this token during delivery.</p>
-          </div>
-          <div className="text-left sm:text-right">
-            <p className="text-xs font-semibold uppercase text-slate-500">Token No</p>
-            <p className="text-2xl font-semibold text-slate-950">{order.order_number}</p>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <Summary label="Customer" value={customer?.name ?? 'Unknown'} />
-          <Summary label="Mobile" value={customer?.phone ?? 'Not set'} />
-          <Summary label="Order date" value={formatDate(order.order_date)} />
-          <Summary label="Delivery date" value={formatDate(order.delivery_date)} />
-        </div>
-      </section>
+      <PrintCopiesPanel orderId={order.id} />
 
-      <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-panel sm:grid-cols-4 print:border-0 print:p-0 print:shadow-none">
+      <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-panel sm:grid-cols-2 lg:grid-cols-5 print:border-0 print:p-0 print:shadow-none">
         <Summary label="Subtotal" value={formatCurrency(order.subtotal)} />
         <Summary label="Discount" value={formatCurrency(order.discount_amount)} />
         <Summary label="Total" value={formatCurrency(order.total_amount)} />
+        <Summary label="Advance paid" value={formatCurrency(financial.totalPaid)} />
         <Summary label="Due" value={formatCurrency(financial.dueAmount)} />
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel print:border-0 print:p-0 print:shadow-none">
         <h2 className="text-base font-semibold text-slate-950">Items and job cards</h2>
         <div className="mt-4 space-y-4">
-          {items.map((item) => (
+          {items.map((item) => {
+            const measurementSnapshot = jsonObject(item.measurement_snapshot);
+            const styleSnapshot = jsonObject(item.style_snapshot);
+            const design = recordFromUnknown(item.design_snapshot);
+            const previewSummary = recordFromUnknown(item.preview_summary);
+            const designName = snapshotString(design, ['design_name', 'name']) ?? 'Custom design';
+            const styleCategory = typeof design.style_category === 'string' ? design.style_category : null;
+            const previewImageUrl = item.design_reference_url ?? (typeof design.preview_image_url === 'string' ? design.preview_image_url : null);
+            const fabricReferenceUrl = item.fabric_reference_url;
+            const previewVideoUrl = item.preview_video_url ?? (typeof design.preview_video_url === 'string' ? design.preview_video_url : null);
+
+            return (
             <article key={item.id} className="break-inside-avoid rounded-lg border border-slate-200 p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h3 className="font-semibold text-slate-950">{item.garment_name_snapshot}</h3>
+                  <p className="mt-1 text-sm text-slate-600">Design: {designName}</p>
                   <p className="mt-1 text-sm text-slate-600">Quantity {item.quantity} - {formatCurrency(item.unit_price)} each - {formatCurrency(item.line_total)}</p>
                   <p className="mt-1 text-sm text-slate-600">Production: {item.production_status} - Worker {item.assigned_to?.slice(0, 8) ?? 'Unassigned'}</p>
                   <p className="mt-1 text-sm text-slate-600">Item delivery: {formatDate(item.item_delivery_date ?? order.delivery_date)}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{item.production_status.replace(/_/g, ' ')}</span>
               </div>
-              <Snapshot title="Measurement snapshot" values={jsonObject(item.measurement_snapshot)} />
-              <Snapshot title="Style snapshot" values={jsonObject(item.style_snapshot)} />
-              {item.design_reference_url ? (
-                <div className="mt-3">
-                  <p className="text-sm font-semibold text-slate-800">Cloth / reference photo</p>
-                  <img src={item.design_reference_url} alt="" className="mt-2 h-40 w-full max-w-sm rounded-lg border border-slate-200 object-cover" />
-                </div>
-              ) : null}
+              <div className="mt-3">
+                <GarmentPreviewCard
+                  title="Saved customer preview"
+                  garmentName={item.garment_name_snapshot}
+                  designName={designName}
+                  styleCategory={styleCategory}
+                  previewImageUrl={previewImageUrl}
+                  fabricReferenceUrl={fabricReferenceUrl}
+                  previewVideoUrl={previewVideoUrl}
+                  measurementValues={measurementSnapshot}
+                  styleValues={styleSnapshot}
+                  previewSummary={previewSummary}
+                  compact
+                />
+              </div>
+              <Snapshot title="Design snapshot" values={design} />
+              <Snapshot title="Measurement snapshot" values={measurementSnapshot} />
+              <Snapshot title="Style snapshot" values={styleSnapshot} />
+              <Snapshot title="Preview summary" values={previewSummary} />
               {item.special_instructions ? <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{item.special_instructions}</p> : null}
               <div className="no-print mt-4 flex flex-wrap gap-2">
                 {item.production_status !== 'ready' && item.production_status !== 'delivered' && item.production_status !== 'cancelled' ? (
@@ -181,7 +181,8 @@ export function OrderDetailPage() {
                 {item.production_status === 'ready' && financial.dueAmount > 0 ? <span className="inline-flex min-h-10 items-center rounded-lg bg-amber-50 px-3 text-sm font-semibold text-amber-800">Due must be paid first</span> : null}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -224,6 +225,56 @@ export function OrderDetailPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function snapshotString(values: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = values[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
+function PrintCopiesPanel({ orderId }: { orderId: string }) {
+  return (
+    <section id="print-copies" className="no-print rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-slate-950">Print Copies</h2>
+          <p className="mt-1 text-sm text-slate-600">Print customer, production, and store copies separately, or preview all copies with page breaks.</p>
+        </div>
+        <Link to={`/orders/${orderId}/print/customer-token`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+          <FileText aria-hidden="true" className="h-4 w-4" />
+          Open Customer Token Preview
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <PrintCopyLink to={`/orders/${orderId}/print/customer-token?autoprint=1`} icon={ReceiptText} label="Customer Token" primary />
+        <PrintCopyLink to={`/orders/${orderId}/print/production-copy?autoprint=1`} icon={Scissors} label="Production Copy" />
+        <PrintCopyLink to={`/orders/${orderId}/print/store-copy?autoprint=1`} icon={Printer} label="Store Copy" />
+        <PrintCopyLink to={`/orders/${orderId}/print/all?autoprint=1`} icon={FileText} label="Print All Copies" />
+      </div>
+    </section>
+  );
+}
+
+function PrintCopyLink({ to, icon: Icon, label, primary = false }: { to: string; icon: LucideIcon; label: string; primary?: boolean }) {
+  return (
+    <Link
+      to={to}
+      className={
+        primary
+          ? 'inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700'
+          : 'inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100'
+      }
+    >
+      <Icon aria-hidden="true" className="h-4 w-4" />
+      {label}
+    </Link>
   );
 }
 

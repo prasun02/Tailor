@@ -59,6 +59,11 @@ const orderDetail = {
       production_status: 'ready',
       item_delivery_date: '2026-07-12',
       design_reference_url: 'https://example.com/shirt.jpg',
+      design_id: 'design-1',
+      design_snapshot: { design_name: 'Classic Shirt', design_code: 'SHIRT_CLASSIC', style_category: 'Classic', preview_image_url: 'https://example.com/shirt.jpg' },
+      preview_summary: { fit: 'Regular fit', measurement_count: 2 },
+      fabric_reference_url: 'https://example.com/cloth.jpg',
+      preview_video_url: null,
       created_at: '2026-07-08T08:00:00.000Z',
       updated_at: '2026-07-08T08:00:00.000Z',
     },
@@ -121,8 +126,8 @@ vi.mock('../features/orders/orderHooks', () => ({
   useConfirmOrderDelivery: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
-describe('OrderDetailPage receipt rendering', () => {
-  it('renders token, receipt totals, snapshots, and delivery action', () => {
+describe('OrderDetailPage print section rendering', () => {
+  it('renders print-copy actions, snapshots, totals, and delivery action', () => {
     render(
       <MemoryRouter initialEntries={['/orders/order-1?created=1']}>
         <Routes>
@@ -132,11 +137,17 @@ describe('OrderDetailPage receipt rendering', () => {
     );
 
     expect(screen.getAllByText('ORD-202607-00001').length).toBeGreaterThan(0);
-    expect(screen.getByText('Nipu Tailors')).toBeInTheDocument();
-    expect(screen.getByText('Please bring this token during delivery.')).toBeInTheDocument();
+    expect(screen.getAllByText(/Classic Shirt/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/SHIRT_CLASSIC/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: /print copies/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^customer token$/i })).toHaveAttribute('href', '/orders/order-1/print/customer-token?autoprint=1');
+    expect(screen.getByRole('link', { name: /^production copy$/i })).toHaveAttribute('href', '/orders/order-1/print/production-copy?autoprint=1');
+    expect(screen.getByRole('link', { name: /^store copy$/i })).toHaveAttribute('href', '/orders/order-1/print/store-copy?autoprint=1');
+    expect(screen.getByRole('link', { name: /print all copies/i })).toHaveAttribute('href', '/orders/order-1/print/all?autoprint=1');
+    expect(screen.getByRole('link', { name: /open customer token preview/i })).toHaveAttribute('href', '/orders/order-1/print/customer-token');
+    expect(screen.getByText('Design snapshot')).toBeInTheDocument();
     expect(screen.getByText('Measurement snapshot')).toBeInTheDocument();
     expect(screen.getByText('Style snapshot')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /mark delivered/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /print token\/job card/i })).toBeInTheDocument();
   });
 });

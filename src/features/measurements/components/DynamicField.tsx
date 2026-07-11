@@ -1,6 +1,7 @@
 import type { MeasurementFieldType, StyleFieldType } from '../../../types/database';
 import { cn } from '../../../utils/cn';
 import type { DynamicFieldValue } from '../dynamicValidation';
+import { displayFieldLabel } from '../labelUtils';
 
 type DynamicOption = {
   label: string;
@@ -42,7 +43,7 @@ export function DynamicField({
   error,
   onChange,
 }: DynamicFieldProps) {
-  const labelText = labelBn ? `${label} / ${labelBn}` : label;
+  const labelText = displayFieldLabel(label, labelBn);
   const normalizedOptions = normalizeDynamicOptions(options);
 
   return (

@@ -133,6 +133,67 @@ export type Database = {
           deleted_at?: Timestamp | null;
         }
       >;
+      garment_designs: TableDefinition<
+        {
+          id: Uuid;
+          shop_id: Uuid;
+          garment_type_id: Uuid;
+          design_name: string;
+          design_code: string;
+          style_category: string | null;
+          preview_image_url: string | null;
+          preview_video_url: string | null;
+          cloth_reference_url: string | null;
+          tags: string[];
+          description: string | null;
+          style_metadata: Json;
+          is_active: boolean;
+          sort_order: number;
+          created_by: Uuid | null;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+          deleted_at: Timestamp | null;
+        },
+        {
+          id?: Uuid;
+          shop_id: Uuid;
+          garment_type_id: Uuid;
+          design_name: string;
+          design_code: string;
+          style_category?: string | null;
+          preview_image_url?: string | null;
+          preview_video_url?: string | null;
+          cloth_reference_url?: string | null;
+          tags?: string[];
+          description?: string | null;
+          style_metadata?: Json;
+          is_active?: boolean;
+          sort_order?: number;
+          created_by?: Uuid | null;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+          deleted_at?: Timestamp | null;
+        },
+        {
+          id?: Uuid;
+          shop_id?: Uuid;
+          garment_type_id?: Uuid;
+          design_name?: string;
+          design_code?: string;
+          style_category?: string | null;
+          preview_image_url?: string | null;
+          preview_video_url?: string | null;
+          cloth_reference_url?: string | null;
+          tags?: string[];
+          description?: string | null;
+          style_metadata?: Json;
+          is_active?: boolean;
+          sort_order?: number;
+          created_by?: Uuid | null;
+          updated_at?: Timestamp;
+          deleted_at?: Timestamp | null;
+        }
+      >;
       measurement_fields: TableDefinition<
         {
           id: Uuid;
@@ -323,6 +384,11 @@ export type Database = {
           production_status: ProductionStatus;
           item_delivery_date: string | null;
           design_reference_url: string | null;
+          design_id: Uuid | null;
+          design_snapshot: Json;
+          preview_summary: Json;
+          fabric_reference_url: string | null;
+          preview_video_url: string | null;
           created_at: Timestamp;
           updated_at: Timestamp;
         },
