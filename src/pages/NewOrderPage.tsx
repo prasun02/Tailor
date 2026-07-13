@@ -539,12 +539,12 @@ export function NewOrderPage() {
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-panel sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-brand-200 bg-white p-3 shadow-panel sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           disabled={step === 0}
           onClick={() => setStep((current) => Math.max(current - 1, 0))}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" />
           Back
@@ -553,7 +553,7 @@ export function NewOrderPage() {
           <button
             type="button"
             onClick={saveBrowserDraft}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50"
           >
             <Save aria-hidden="true" className="h-4 w-4" />
             Save Draft
@@ -561,7 +561,7 @@ export function NewOrderPage() {
           <button
             type="button"
             onClick={loadBrowserDraft}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50"
           >
             Load Draft
           </button>
@@ -589,7 +589,7 @@ export function NewOrderPage() {
                 type="button"
                 disabled={createOrder.isPending || createCustomer.isPending || updateCustomer.isPending}
                 onClick={() => void confirmOrder(true)}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-600 px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-600 bg-white px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
               >
                 <ReceiptText aria-hidden="true" className="h-4 w-4" />
                 {shouldPrintAfterCreate ? 'Preparing Token' : 'Confirm and Prepare Token'}
@@ -638,7 +638,7 @@ function CustomerStep({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search token customer by mobile, name, or customer code"
-          className="min-h-12 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
+          className="min-h-12 w-full rounded-lg border border-brand-200 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
         />
       </label>
       {isSearching ? <p className="text-sm text-slate-500">Searching customers...</p> : null}
@@ -658,11 +658,11 @@ function CustomerStep({
       ) : null}
 
       {selectedCustomer ? (
-        <div className="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-accent-100 bg-accent-50 p-4 text-sm text-brand-900 sm:flex-row sm:items-center sm:justify-between">
           <span>
             Selected existing customer: <strong>{selectedCustomer.name}</strong> ({selectedCustomer.customer_code})
           </span>
-          <button type="button" onClick={onClearSelected} className="rounded-lg border border-emerald-300 bg-white px-3 py-2 font-semibold text-emerald-900">
+          <button type="button" onClick={onClearSelected} className="rounded-lg border border-accent-500 bg-white px-3 py-2 font-semibold text-brand-900">
             Enter as new
           </button>
         </div>
@@ -710,7 +710,7 @@ function GarmentItemsStep({
     <div className="space-y-4">
       <StepHeader title="Garment Items" description="Choose item type, quantity, worker assignment, and pricing before opening the design gallery." />
       {items.map((item, index) => (
-        <section key={item.id} className="rounded-lg border border-slate-200 p-4">
+        <section key={item.id} className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-950">Garment {index + 1}</h2>
@@ -753,12 +753,12 @@ function GarmentItemsStep({
             ) : null}
           </div>
 
-          <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+          <div className="mt-4 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-slate-700">
             Line total preview: <strong>{formatCurrency(lineTotal(item))}</strong>
           </div>
         </section>
       ))}
-      <button type="button" onClick={onAddItem} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+      <button type="button" onClick={onAddItem} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50">
         <Plus aria-hidden="true" className="h-4 w-4" />
         Add Garment
       </button>
@@ -816,7 +816,7 @@ export function DesignSelectionStep({
             value={designSearch}
             onChange={(event) => setDesignSearch(event.target.value)}
             placeholder="Classic full sleeve formal shirt, SH-001, wedding"
-            className="min-h-12 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
+            className="min-h-12 w-full rounded-lg border border-brand-200 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />
         </label>
         <SelectBox
@@ -826,7 +826,7 @@ export function DesignSelectionStep({
           onChange={setStyleCategory}
         />
         {canManageDesigns ? (
-          <Link to="/settings/designs" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+          <Link to="/settings/designs" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50">
             <Sparkles aria-hidden="true" className="h-4 w-4" />
             Add New Design
           </Link>
@@ -847,7 +847,7 @@ export function DesignSelectionStep({
         const selectedDesignFromAll = designs.find((design) => design.id === item.designId) ?? selectedDesign;
 
         return (
-          <section key={item.id} className="rounded-lg border border-slate-200 p-4">
+          <section key={item.id} className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <h2 className="font-semibold text-slate-950">Item {index + 1}: {garment?.name ?? 'Select a garment first'}</h2>
@@ -886,11 +886,11 @@ export function DesignSelectionStep({
             )}
 
             {!item.garmentTypeId ? (
-              <div className="mt-4 rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+              <div className="mt-4 rounded-lg border border-dashed border-brand-200 bg-brand-50 p-4 text-sm text-slate-600">
                 Select a garment type to show matching designs.
               </div>
             ) : itemDesigns.length === 0 ? (
-              <div className="mt-4 rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+              <div className="mt-4 rounded-lg border border-dashed border-brand-200 bg-brand-50 p-4 text-sm text-slate-600">
                 No designs added for {garmentName} yet. Add designs from Design Library.
               </div>
             ) : (
@@ -920,7 +920,7 @@ export function DesignSelectionStep({
                           onClick={() => setPreviewTarget({ itemId: item.id, garmentName, design })}
                           className={cn(
                             'inline-flex min-h-10 w-full items-center justify-center rounded-lg px-3 text-sm font-semibold',
-                            isSelected ? 'bg-brand-600 text-white' : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100',
+                            isSelected ? 'bg-brand-900 text-white' : 'border border-brand-200 bg-white text-slate-700 hover:bg-brand-50',
                           )}
                         >
                           {isSelected ? 'Selected' : 'Choose'}
@@ -1046,7 +1046,7 @@ function DesignPreviewModal({
           </div>
         </div>
         <div className="flex flex-col gap-2 border-t border-slate-200 p-4 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onClose} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+          <button type="button" onClick={onClose} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50">
             Close
           </button>
           <button type="button" onClick={onOpenBig} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-4 text-sm font-semibold text-brand-700 hover:bg-brand-100">
@@ -1153,7 +1153,7 @@ function StyleOptionsItemEditor({
 
       <SelectedDesignSummary design={design} />
 
-      <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <section className="rounded-lg border border-brand-200 bg-brand-50 p-4">
         <h3 className="text-sm font-semibold text-slate-950">Style Options</h3>
         <p className="mt-1 text-sm text-slate-600">Choose the visible garment details such as sleeve, collar, cuff, pocket, fit, and finishing style.</p>
         {styleFieldsQuery.isLoading ? <p className="mt-3 text-sm text-slate-500">Loading style options...</p> : null}
@@ -1180,7 +1180,7 @@ function StyleOptionsItemEditor({
         ) : null}
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-slate-950">Selected Style Summary</h3>
         {filledEntryCount(item.styleValues) > 0 ? <Snapshot title="Style choices" values={item.styleValues} /> : <p className="mt-2 text-sm text-slate-500">No style options selected yet.</p>}
       </section>
@@ -1276,12 +1276,12 @@ function MeasurementItemEditor({
 
       <SelectedDesignSummary design={design} />
 
-      <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <section className="rounded-lg border border-brand-200 bg-brand-50 p-4">
         <h3 className="text-sm font-semibold text-slate-950">Selected Style Summary</h3>
         {filledEntryCount(item.styleValues) > 0 ? <Snapshot title="Style choices" values={item.styleValues} /> : <p className="mt-2 text-sm text-slate-500">No style options selected.</p>}
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-slate-950">Measurement Source</h3>
         <p className="mt-1 text-sm text-slate-600">
           {garmentMeasurements.length > 0 ? `${garmentMeasurements.length} saved measurement version(s) found for this customer and garment.` : 'No previous measurements found for this garment.'}
@@ -1334,7 +1334,7 @@ function MeasurementItemEditor({
         )}
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
         <TextAreaField
           label="Item special instruction"
           placeholder="Example: Keep loose fit, add inner pocket, urgent delivery"
@@ -1425,7 +1425,7 @@ function FabricReferenceItemEditor({
       <SelectedDesignSummary design={design} />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <section className="rounded-lg border border-brand-200 bg-brand-50 p-4">
           <h3 className="text-sm font-semibold text-slate-950">Style and Measurement Status</h3>
           <div className="mt-3 grid gap-3 text-sm">
             <SummaryLine label="Style options" value={`${filledEntryCount(item.styleValues)} selected`} />
@@ -1458,8 +1458,8 @@ function StepItemPager({
   if (itemCount <= 1) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm font-semibold text-slate-700">Garment item {currentIndex + 1} of {itemCount}</p>
+    <div className="flex flex-col gap-3 rounded-lg border border-brand-200 bg-brand-50 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-semibold text-brand-900">Garment item {currentIndex + 1} of {itemCount}</p>
       <div className="flex flex-wrap gap-2">
         {Array.from({ length: itemCount }, (_, index) => (
           <button
@@ -1468,7 +1468,7 @@ function StepItemPager({
             onClick={() => onIndexChange(index)}
             className={cn(
               'min-h-9 rounded-lg border px-3 text-sm font-semibold',
-              currentIndex === index ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-100',
+              currentIndex === index ? 'border-brand-700 bg-brand-900 text-white' : 'border-brand-200 bg-white text-slate-700 hover:bg-brand-50',
             )}
           >
             Item {index + 1}
@@ -1501,7 +1501,7 @@ function SelectedDesignSummary({ design }: { design: GarmentDesign | null }) {
   }
 
   return (
-    <section className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+    <section className="rounded-lg border border-brand-200 bg-brand-50 p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-brand-950">Selected design summary</h3>
       <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,18rem)_1fr]">
         <ThumbnailImage src={design.preview_image_url} className="h-32 w-full rounded-lg border border-brand-200" />
@@ -1586,7 +1586,7 @@ function FabricReferenceSection({
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4">
+    <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-950">Fabric / Cloth Reference</h3>
       <p className="mt-1 text-sm text-slate-600">Add the customer's selected fabric image, use URL, or skip.</p>
 
@@ -1594,7 +1594,7 @@ function FabricReferenceSection({
         <button
           type="button"
           onClick={() => chooseMode('upload')}
-          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'upload' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 text-slate-700 hover:bg-slate-100')}
+          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'upload' ? 'border-brand-700 bg-brand-900 text-white' : 'border-brand-200 bg-white text-slate-700 hover:bg-brand-50')}
         >
           <Upload aria-hidden="true" className="h-4 w-4" />
           Upload Image
@@ -1602,7 +1602,7 @@ function FabricReferenceSection({
         <button
           type="button"
           onClick={() => chooseMode('url')}
-          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'url' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 text-slate-700 hover:bg-slate-100')}
+          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'url' ? 'border-brand-700 bg-brand-900 text-white' : 'border-brand-200 bg-white text-slate-700 hover:bg-brand-50')}
         >
           <LinkIcon aria-hidden="true" className="h-4 w-4" />
           Use URL
@@ -1610,7 +1610,7 @@ function FabricReferenceSection({
         <button
           type="button"
           onClick={() => chooseMode('skip')}
-          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'skip' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 text-slate-700 hover:bg-slate-100')}
+          className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold', mode === 'skip' ? 'border-brand-700 bg-brand-900 text-white' : 'border-brand-200 bg-white text-slate-700 hover:bg-brand-50')}
         >
           <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
           Skip
@@ -1619,7 +1619,7 @@ function FabricReferenceSection({
 
       {mode === 'upload' ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_12rem]">
-          <label htmlFor={inputId} className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-600 hover:bg-slate-100">
+          <label htmlFor={inputId} className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-brand-300 bg-brand-50 p-4 text-center text-sm text-slate-600 hover:bg-brand-100">
             <Upload aria-hidden="true" className="mb-2 h-5 w-5 text-brand-700" />
             {isUploading ? 'Uploading fabric image...' : item.fabricReferenceUrl ? 'Change image' : 'Upload fabric image'}
             <input id={inputId} type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" className="sr-only" onChange={(event) => void uploadFabricImage(event)} />
@@ -1627,13 +1627,13 @@ function FabricReferenceSection({
           {item.fabricReferenceUrl ? (
             <div className="space-y-2">
               <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
-              <button type="button" onClick={() => onUpdate({ fabricReferenceUrl: '' })} className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+              <button type="button" onClick={() => onUpdate({ fabricReferenceUrl: '' })} className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-brand-50">
                 <X aria-hidden="true" className="h-4 w-4" />
                 Remove
               </button>
             </div>
           ) : (
-            <div className="flex h-32 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-500">No fabric image</div>
+            <div className="flex h-32 items-center justify-center rounded-lg border border-brand-200 bg-brand-50 text-sm text-slate-500">No fabric image</div>
           )}
         </div>
       ) : null}
@@ -1644,7 +1644,7 @@ function FabricReferenceSection({
           {item.fabricReferenceUrl ? (
             <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
           ) : (
-            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500">No URL</div>
+            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-brand-300 bg-brand-50 text-sm text-slate-500">No URL</div>
           )}
         </div>
       ) : null}
@@ -1675,7 +1675,7 @@ function ItemPreviewSummary({
   const fabricStatus = item.fabricReferenceUrl ? 'Added' : 'Skipped';
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <section className="rounded-lg border border-brand-200 bg-brand-50 p-4">
       <h3 className="text-sm font-semibold text-slate-950">Estimated garment preview</h3>
       <div className="mt-3 grid gap-3 sm:grid-cols-[8rem_1fr]">
         <div className="grid gap-2 sm:grid-cols-2">
@@ -1808,15 +1808,15 @@ export function PreviewGarmentStep({
           />
         );
       })}
-      <div className="no-print flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-end">
+      <div className="no-print flex flex-col gap-2 rounded-lg border border-brand-200 bg-brand-50 p-3 sm:flex-row sm:items-center sm:justify-end">
         {onBackToStyle ? (
-          <button type="button" onClick={onBackToStyle} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+          <button type="button" onClick={onBackToStyle} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50">
             <ArrowLeft aria-hidden="true" className="h-4 w-4" />
             Back to Style
           </button>
         ) : null}
         {onBackToMeasurement ? (
-          <button type="button" onClick={onBackToMeasurement} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+          <button type="button" onClick={onBackToMeasurement} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-brand-50">
             <ArrowLeft aria-hidden="true" className="h-4 w-4" />
             Back to Measurement
           </button>
@@ -1859,7 +1859,7 @@ function PaymentDeliveryStep({
         <TextField label="Payment reference" placeholder="Cash memo or transaction reference" value={values.paymentReference ?? ''} onChange={(event) => setValues((current) => ({ ...current, paymentReference: event.target.value }))} />
         <TextAreaField label="General order notes" placeholder="Example: Keep loose fit, add inner pocket, urgent delivery" value={values.notes ?? ''} onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))} className="md:col-span-2" />
       </div>
-      <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-4">
+      <div className="grid gap-3 rounded-lg border border-brand-200 bg-brand-50 p-4 sm:grid-cols-4">
         <Summary label="Subtotal" value={formatCurrency(subtotalValue)} />
         <Summary label="Discount" value={formatCurrency(values.discountAmount)} />
         <Summary label="Total" value={formatCurrency(totalValue)} />
@@ -1933,7 +1933,7 @@ export function FinalPreviewStep({
           const designLabel = design ? `${design.design_name}${design.design_code ? ` (${design.design_code})` : ''}` : 'No design selected';
 
           return (
-            <article key={item.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel">
+            <article key={item.id} className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
               <div className="grid gap-4 lg:grid-cols-[10rem_1fr]">
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   <div>
@@ -1986,6 +1986,11 @@ export function FinalPreviewStep({
           <Summary label="Method" value={values.paymentMethod.replace('_', ' ')} />
         </div>
       </section>
+
+      <section className="rounded-lg border border-accent-100 bg-accent-50 p-4 shadow-sm">
+        <h2 className="font-semibold text-brand-900">Final action</h2>
+        <p className="mt-1 text-sm leading-6 text-slate-700">Confirm the order to save immutable measurement and style snapshots, or prepare the customer token immediately after saving.</p>
+      </section>
     </div>
   );
 }
@@ -2009,7 +2014,7 @@ function SelectBox({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
-          'min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100',
+          'min-h-12 w-full rounded-lg border border-brand-200 bg-white px-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100',
           error ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : null,
         )}
       >
@@ -2023,8 +2028,9 @@ function SelectBox({
 
 function StepHeader({ title, description }: { title: string; description: string }) {
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
+    <div className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase text-accent-700">Faabrico order flow</p>
+      <h2 className="mt-1 text-xl font-semibold text-slate-950">{title}</h2>
       <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
     </div>
   );
@@ -2032,8 +2038,8 @@ function StepHeader({ title, description }: { title: string; description: string
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white p-3">
-      <p className="text-xs uppercase text-slate-500">{label}</p>
+    <div className="rounded-lg border border-brand-200 bg-white p-3 shadow-sm">
+      <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
       <p className="mt-1 font-semibold text-slate-950">{value}</p>
     </div>
   );
@@ -2044,13 +2050,13 @@ function Snapshot({ title, values }: { title: string; values: Record<string, unk
   if (entries.length === 0) return null;
 
   return (
-    <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm">
-      <p className="font-semibold text-slate-800">{title}</p>
+    <div className="mt-3 rounded-lg border border-brand-200 bg-white p-3 text-sm shadow-sm">
+      <p className="font-semibold text-slate-900">{title}</p>
       <dl className="mt-2 grid gap-2 sm:grid-cols-2">
         {entries.map(([key, value]) => (
-          <div key={key}>
-            <dt className="text-xs uppercase text-slate-500">{key}</dt>
-            <dd className="font-medium text-slate-800">{displayDynamicValue(value)}</dd>
+          <div key={key} className="min-w-0 rounded-lg bg-brand-50 px-3 py-2">
+            <dt className="text-xs font-semibold uppercase text-slate-500">{key}</dt>
+            <dd className="mt-1 break-words font-medium text-slate-900">{displayDynamicValue(value)}</dd>
           </div>
         ))}
       </dl>
@@ -2060,9 +2066,9 @@ function Snapshot({ title, values }: { title: string; values: Record<string, unk
 
 function SummaryLine({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex min-w-0 justify-between gap-3 rounded-lg bg-white px-3 py-2 shadow-sm">
       <span className="text-slate-500">{label}</span>
-      <span className="text-right font-semibold text-slate-950">{value}</span>
+      <span className="break-words text-right font-semibold text-slate-950">{value}</span>
     </div>
   );
 }

@@ -1,18 +1,17 @@
 import { Outlet } from 'react-router-dom';
+import { appBrand } from '../app/brand';
+import { BrandMark } from '../components/BrandMark';
 import { appEnv } from '../lib/env';
-import { appLogoIcon as LogoIcon } from '../routes/navigation';
 
 export function PublicLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-brand-50 text-slate-950">
+      <header className="border-b border-brand-800 bg-brand-900 text-white shadow-premium">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-600 text-white">
-            <LogoIcon aria-hidden="true" className="h-6 w-6" />
-          </span>
-          <div>
-            <p className="text-base font-semibold">{appEnv.appName}</p>
-            <p className="text-sm text-slate-500">Secure tailor shop workspace</p>
+          <BrandMark compact className="bg-brand-800" />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold">{appEnv.appName}</p>
+            <p className="truncate text-sm text-brand-100">{appBrand.subtitle}</p>
           </div>
         </div>
       </header>

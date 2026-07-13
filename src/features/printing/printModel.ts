@@ -1,3 +1,4 @@
+import { appBrand, brandInitials } from '../../app/brand';
 import type { OrderDetail } from '../orders/orderService';
 
 export type ShopBrand = {
@@ -23,13 +24,42 @@ export type PrintItemDesign = {
 
 type OrderItem = OrderDetail['items'][number];
 
-export function fallbackShopBrand(name?: string | null): ShopBrand {
+const genericShopNames = new Set(['tailor store manager', 'tailor shop', 'example tailors', 'nipu tailors', 'nipun tailors']);
+const genericPhones = new Set(['01700000000']);
+const genericAddresses = new Set(['shop address', 'barisal']);
+
+type ShopBrandInput = {
+  name?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  logo_url?: string | null;
+};
+
+function brandedText(value: string | null | undefined, fallback: string, genericValues?: Set<string>): string {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return fallback;
+  }
+
+  if (genericValues?.has(trimmed.toLowerCase())) {
+    return fallback;
+  }
+
+  return trimmed;
+}
+
+export function withShopBrandDefaults(shop?: ShopBrandInput | null): ShopBrand {
   return {
-    name: name?.trim() || 'Tailor Shop',
-    phone: null,
-    address: null,
-    logo_url: null,
+    name: brandedText(shop?.name ?? null, appBrand.name, genericShopNames),
+    phone: brandedText(shop?.phone ?? null, appBrand.phone, genericPhones),
+    address: brandedText(shop?.address ?? null, appBrand.address, genericAddresses),
+    logo_url: shop?.logo_url?.trim() || appBrand.logoUrl || null,
   };
+}
+
+export function fallbackShopBrand(name?: string | null): ShopBrand {
+  return withShopBrandDefaults({ name });
 }
 
 export function initialsForName(name: string): string {
@@ -39,9 +69,9 @@ export function initialsForName(name: string): string {
     .filter(Boolean)
     .slice(0, 2);
 
-  if (words.length === 0) return 'TS';
+  if (words.length === 0) return brandInitials();
 
-  return words.map((word) => word[0]?.toUpperCase() ?? '').join('');
+  return brandInitials(name);
 }
 
 export function recordFromPrintValue(value: unknown): Record<string, unknown> {

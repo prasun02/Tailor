@@ -16,7 +16,7 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Garment Types')).toBeInTheDocument();
     expect(screen.getByText('Style Fields')).toBeInTheDocument();
     expect(screen.getByText('Staff')).toBeInTheDocument();
-    expect(screen.getByText('Shop Profile')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Shop Profile/i })).toHaveAttribute('href', '/settings/shop-profile');
     expect(screen.getByText('Print Settings')).toBeInTheDocument();
     expect(screen.getByText('Backup')).toBeInTheDocument();
   });

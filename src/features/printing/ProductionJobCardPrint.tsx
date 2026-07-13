@@ -4,7 +4,7 @@ import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
 import { PrintMeasurementTable } from './PrintMeasurementTable';
 import { PrintStyleSummary } from './PrintStyleSummary';
-import { designForPrint, recordFromPrintValue, shortUserId, type ShopBrand } from './printModel';
+import { designForPrint, recordFromPrintValue, shortUserId, withShopBrandDefaults, type ShopBrand } from './printModel';
 
 type ProductionJobCardPrintProps = {
   detail: OrderDetail;
@@ -13,10 +13,11 @@ type ProductionJobCardPrintProps = {
 
 export function ProductionJobCardPrint({ detail, shop }: ProductionJobCardPrintProps) {
   const { order, customer, items } = detail;
+  const brand = withShopBrandDefaults(shop);
 
   return (
     <section className="print-document production-copy" data-testid="production-copy">
-      <PrintHeader shop={shop} title="Production Copy / Job Card" subtitle="Cutting, stitching and QC sheet" orderNumber={order.order_number} />
+      <PrintHeader shop={brand} title="Production Copy / Job Card" subtitle="Cutting, stitching and QC sheet" orderNumber={order.order_number} />
 
       <div className="print-section print-meta-grid">
         <Meta label="Customer" value={customer?.name ?? 'Unknown customer'} />

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { appBrand } from '../app/brand';
 
 const rawEnv = {
   VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ?? '',
@@ -34,7 +35,7 @@ const secretKeyIssues = secretKeyPatterns.some((pattern) => publishableKey.toLow
 const configurationIssues = [...validationIssues, ...secretKeyIssues];
 
 export const appEnv = {
-  appName: parsedEnv.success ? parsedEnv.data.VITE_APP_NAME : rawEnv.VITE_APP_NAME.trim() || 'Tailor Store Manager',
+  appName: parsedEnv.success ? parsedEnv.data.VITE_APP_NAME : rawEnv.VITE_APP_NAME.trim() || appBrand.name,
   supabaseUrl: parsedEnv.success ? parsedEnv.data.VITE_SUPABASE_URL : '',
   supabasePublishableKey: parsedEnv.success ? parsedEnv.data.VITE_SUPABASE_PUBLISHABLE_KEY : '',
   configurationIssues,

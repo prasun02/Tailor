@@ -8,9 +8,9 @@ import { StoreOwnerCopyPrint } from './StoreOwnerCopyPrint';
 import type { ShopBrand } from './printModel';
 
 const shop: ShopBrand = {
-  name: 'Nipu Tailors',
-  phone: '01700000000',
-  address: 'Barisal',
+  name: 'Faabrico',
+  phone: '+880 1714-793555',
+  address: '5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka',
   logo_url: 'https://example.com/logo.png',
 };
 
@@ -115,8 +115,8 @@ describe('print copies', () => {
     render(<CustomerTokenPrint detail={detail} shop={shop} />);
 
     expect(screen.getByTestId('customer-token-copy')).toBeInTheDocument();
-    expect(screen.getByText('Nipu Tailors')).toBeInTheDocument();
-    expect(screen.getByAltText('Nipu Tailors logo')).toBeInTheDocument();
+    expect(screen.getByText('Faabrico')).toBeInTheDocument();
+    expect(screen.getByAltText('Faabrico logo')).toBeInTheDocument();
     expect(screen.getByText('ORD-202607-00001')).toBeInTheDocument();
     expect(screen.getByText('Nila Akter')).toBeInTheDocument();
     expect(screen.getByText('12 Jul 2026')).toBeInTheDocument();

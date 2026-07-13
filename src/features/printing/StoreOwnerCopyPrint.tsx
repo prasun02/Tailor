@@ -11,6 +11,7 @@ import {
   printedAtDhaka,
   recordFromPrintValue,
   shortUserId,
+  withShopBrandDefaults,
   type ShopBrand,
 } from './printModel';
 
@@ -23,11 +24,12 @@ type StoreOwnerCopyPrintProps = {
 
 export function StoreOwnerCopyPrint({ detail, shop, printedBy = 'Current user', printedAt = new Date() }: StoreOwnerCopyPrintProps) {
   const { order, customer, items, payments, financial } = detail;
+  const brand = withShopBrandDefaults(shop);
   const latestPayment = latestCompletedPayment(detail);
 
   return (
     <section className="print-document store-copy" data-testid="store-copy">
-      <PrintHeader shop={shop} title="Owner / Store Copy" subtitle="Complete internal order summary" orderNumber={order.order_number} />
+      <PrintHeader shop={brand} title="Owner / Store Copy" subtitle="Complete internal order summary" orderNumber={order.order_number} />
 
       <div className="print-section print-meta-grid">
         <Meta label="Customer" value={customer?.name ?? 'Unknown customer'} />

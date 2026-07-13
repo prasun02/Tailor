@@ -121,6 +121,10 @@ export const router = createBrowserRouter([
       { path: 'reports', lazy: pageModule(() => import('../pages/ReportsPage'), 'ReportsPage') },
       { path: 'settings', lazy: pageModule(() => import('../pages/SettingsPage'), 'SettingsPage') },
       {
+        path: 'settings/shop-profile',
+        lazy: pageModule(() => import('../pages/ShopProfileSettingsPage'), 'ShopProfileSettingsPage'),
+      },
+      {
         path: 'settings/garments',
         lazy: pageModule(() => import('../pages/GarmentSettingsPage'), 'GarmentSettingsPage'),
       },

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('./lib/env', () => ({
   appEnv: {
-    appName: 'Tailor Store Manager',
+    appName: 'Faabrico',
     supabaseUrl: '',
     supabasePublishableKey: '',
     configurationIssues: ['VITE_SUPABASE_PUBLISHABLE_KEY is required.'],

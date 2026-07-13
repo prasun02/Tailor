@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 function patchViteDevClientBundledFlag(): Plugin {
   return {
-    name: 'tailor-store-patch-vite-dev-client-bundled-flag',
+    name: 'faabrico-patch-vite-dev-client-bundled-flag',
     apply: 'serve',
     transform(code, id) {
       const normalizedId = id.replace(/\\/g, '/');
@@ -79,11 +79,11 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon.svg'],
       manifest: {
-        name: 'Tailor Store Manager',
-        short_name: 'Tailor',
-        description: 'Mobile-first tailor shop management',
-        theme_color: '#0f766e',
-        background_color: '#f8fafc',
+        name: 'Faabrico',
+        short_name: 'Faabrico',
+        description: 'Premium bespoke tailoring management',
+        theme_color: '#062F2F',
+        background_color: '#F7F5EF',
         display: 'standalone',
         start_url: '/',
         icons: [

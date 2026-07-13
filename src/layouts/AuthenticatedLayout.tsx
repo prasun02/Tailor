@@ -1,55 +1,58 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { appBrand } from '../app/brand';
+import { BrandMark } from '../components/BrandMark';
 import { useAuth } from '../features/auth/authContext';
 import { useShop } from '../features/shop/shopContext';
+import { resolveShopBrand, useShopBrand } from '../features/printing/useShopBrand';
+import type { ShopBrand } from '../features/printing/printModel';
 import { appEnv } from '../lib/env';
-import { appLogoIcon as LogoIcon, appNavigation, type NavigationItem } from '../routes/navigation';
+import { appNavigation, type NavigationItem } from '../routes/navigation';
 import { cn } from '../utils/cn';
 
 export function AuthenticatedLayout() {
   const { signOut, user } = useAuth();
   const { currentShop, currentShopId, hasMultipleShops, memberships, setCurrentShopId } = useShop();
+  const brandQuery = useShopBrand(currentShopId, currentShop);
+  const shellBrand = resolveShopBrand(brandQuery.data, currentShop);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8F5EF] text-slate-950 lg:grid lg:grid-cols-[15rem_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r border-brand-200 bg-white px-3 py-5 lg:block">
-        <BrandLockup shopName={currentShop?.name ?? 'Asia/Dhaka - BDT'} />
+    <div className="min-h-screen bg-brand-50 text-slate-950 lg:grid lg:grid-cols-[14.5rem_1fr]">
+      <aside className="sticky top-0 hidden h-screen border-r border-brand-800 bg-brand-900 px-3 py-5 text-white lg:block">
+        <BrandLockup brand={shellBrand} />
         <nav className="mt-7 space-y-1" aria-label="Main navigation">
           {appNavigation.map((item) => (
             <DesktopNavItem key={item.to} item={item} />
           ))}
         </nav>
-        <div className="absolute inset-x-3 bottom-4 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs text-slate-600">
-          <p className="truncate font-semibold text-slate-800">{user?.email ?? 'Signed out'}</p>
-          <p className="mt-1">Asia/Dhaka - BDT</p>
-        </div>
+        <BusinessInfo email={user?.email} />
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-30 border-b border-brand-200 bg-white/95 backdrop-blur no-print lg:static">
+        <header className="sticky top-0 z-30 border-b border-brand-800 bg-brand-900 text-white shadow-premium no-print lg:static">
           <div className="flex min-h-16 items-center justify-between gap-3 px-4 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsMobileNavOpen(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-700 shadow-panel lg:hidden"
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-brand-50 shadow-sm transition hover:bg-white/15 lg:hidden"
                 aria-label="Open navigation"
               >
                 <Menu aria-hidden="true" className="h-5 w-5" />
               </button>
               <div className="lg:hidden">
-                <BrandLockup compact shopName={currentShop?.name ?? 'Shop management'} />
+                <BrandLockup compact brand={shellBrand} />
               </div>
-              <div className="hidden min-w-0 items-center gap-3 text-sm text-slate-500 lg:flex">
-                <Menu aria-hidden="true" className="h-4 w-4 flex-none" />
+              <div className="hidden min-w-0 items-center gap-3 text-sm text-brand-100 lg:flex">
+                <Menu aria-hidden="true" className="h-4 w-4 flex-none text-accent-500" />
                 {hasMultipleShops ? (
                   <select
                     aria-label="Select shop"
                     value={currentShopId ?? ''}
                     onChange={(event) => setCurrentShopId(event.target.value)}
-                    className="min-h-10 rounded-lg border border-brand-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
+                    className="min-h-10 rounded-lg border border-white/15 bg-brand-800 px-3 text-sm font-medium text-white shadow-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/25"
                   >
                     {memberships.map((membership) => (
                       <option key={membership.shop_id} value={membership.shop_id}>
@@ -58,12 +61,12 @@ export function AuthenticatedLayout() {
                     ))}
                   </select>
                 ) : (
-                  <span className="truncate font-medium text-slate-700">{currentShop?.name ?? 'Current shop'}</span>
+                  <span className="truncate font-medium text-brand-50">{appBrand.phone}</span>
                 )}
               </div>
             </div>
             <div className="flex min-w-0 items-center gap-2">
-              <span className="hidden max-w-56 truncate rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-slate-600 sm:block">
+              <span className="hidden max-w-60 truncate rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-brand-50 sm:block">
                 {user?.email ?? 'Signed out'}
               </span>
               {user ? (
@@ -71,7 +74,7 @@ export function AuthenticatedLayout() {
                   type="button"
                   title="Sign out"
                   onClick={() => void signOut()}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-700 shadow-panel transition hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-brand-50 shadow-sm transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent-500"
                 >
                   <LogOut aria-hidden="true" className="h-5 w-5" />
                 </button>
@@ -87,11 +90,11 @@ export function AuthenticatedLayout() {
 
       {isMobileNavOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Mobile navigation">
-          <button type="button" className="absolute inset-0 bg-slate-950/40" aria-label="Close navigation" onClick={() => setIsMobileNavOpen(false)} />
-          <aside className="relative flex h-full w-[min(19rem,88vw)] flex-col border-r border-brand-200 bg-white px-4 py-5 shadow-xl">
+          <button type="button" className="absolute inset-0 bg-slate-950/55" aria-label="Close navigation" onClick={() => setIsMobileNavOpen(false)} />
+          <aside className="relative flex h-full w-[min(19rem,88vw)] flex-col border-r border-brand-800 bg-brand-900 px-4 py-5 text-white shadow-xl">
             <div className="flex items-start justify-between gap-3">
-              <BrandLockup shopName={currentShop?.name ?? 'Shop management'} />
-              <button type="button" onClick={() => setIsMobileNavOpen(false)} title="Close navigation" className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+              <BrandLockup brand={shellBrand} />
+              <button type="button" onClick={() => setIsMobileNavOpen(false)} title="Close navigation" className="flex h-10 w-10 items-center justify-center rounded-lg text-brand-100 hover:bg-white/10">
                 <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
@@ -100,10 +103,7 @@ export function AuthenticatedLayout() {
                 <DesktopNavItem key={item.to} item={item} onNavigate={() => setIsMobileNavOpen(false)} />
               ))}
             </nav>
-            <div className="mt-auto rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs text-slate-600">
-              <p className="truncate font-semibold text-slate-800">{user?.email ?? 'Signed out'}</p>
-              <p className="mt-1">Asia/Dhaka - BDT</p>
-            </div>
+            <BusinessInfo email={user?.email} inline />
           </aside>
         </div>
       ) : null}
@@ -111,16 +111,25 @@ export function AuthenticatedLayout() {
   );
 }
 
-function BrandLockup({ shopName, compact = false }: { shopName: string; compact?: boolean }) {
+function BrandLockup({ brand, compact = false }: { brand: ShopBrand; compact?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className={cn('flex items-center justify-center rounded-lg bg-brand-600 text-white', compact ? 'h-10 w-10' : 'h-11 w-11')}>
-        <LogoIcon aria-hidden="true" className={compact ? 'h-5 w-5' : 'h-6 w-6'} />
-      </span>
+      <BrandMark name={brand.name} logoUrl={brand.logo_url} compact={compact} className="bg-brand-800" />
       <div className="min-w-0">
-        <p className="truncate font-semibold text-slate-950">{appEnv.appName}</p>
-        <p className="truncate text-xs text-slate-500">{shopName}</p>
+        <p className="truncate font-semibold text-white">{appEnv.appName}</p>
+        <p className="truncate text-xs text-brand-100">{compact ? appBrand.description : appBrand.subtitle}</p>
       </div>
+    </div>
+  );
+}
+
+function BusinessInfo({ email, inline = false }: { email?: string | null; inline?: boolean }) {
+  return (
+    <div className={cn('rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-brand-100', inline ? 'mt-auto' : 'absolute inset-x-3 bottom-4')}>
+      <p className="truncate font-semibold text-white">{email ?? 'Signed out'}</p>
+      <p className="mt-1 truncate">{appBrand.phone}</p>
+      <p className="mt-1 leading-5">{appBrand.address}</p>
+      <p className="mt-1 text-accent-100">{appBrand.timezoneCurrency}</p>
     </div>
   );
 }
@@ -134,12 +143,14 @@ function DesktopNavItem({ item, onNavigate }: { item: NavigationItem; onNavigate
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition',
-          isActive ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-200' : 'text-slate-600 hover:bg-brand-50 hover:text-slate-950',
+          'flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition',
+          isActive
+            ? 'bg-white text-brand-900 ring-1 ring-accent-500/70'
+            : 'text-brand-100 hover:bg-white/10 hover:text-white',
         )
       }
     >
-      <Icon aria-hidden="true" className="h-5 w-5" />
+      <Icon aria-hidden="true" className="h-4 w-4" />
       {item.label}
     </NavLink>
   );

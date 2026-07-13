@@ -2,7 +2,7 @@ import type { OrderDetail } from '../orders/orderService';
 import { formatCurrency, formatDate } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
-import { completedPaymentTotal, designForPrint, type ShopBrand } from './printModel';
+import { completedPaymentTotal, designForPrint, withShopBrandDefaults, type ShopBrand } from './printModel';
 
 type CustomerTokenPrintProps = {
   detail: OrderDetail;
@@ -12,10 +12,11 @@ type CustomerTokenPrintProps = {
 export function CustomerTokenPrint({ detail, shop }: CustomerTokenPrintProps) {
   const { order, customer, items, financial } = detail;
   const advancePaid = completedPaymentTotal(detail);
+  const brand = withShopBrandDefaults(shop);
 
   return (
     <section className="print-document customer-token" data-testid="customer-token-copy">
-      <PrintHeader shop={shop} title="Customer Token Copy" subtitle="Delivery receipt" orderNumber={order.order_number} />
+      <PrintHeader shop={brand} title="Customer Token Copy" subtitle="Delivery receipt" orderNumber={order.order_number} />
 
       <div className="print-section print-meta-grid">
         <Meta label="Customer" value={customer?.name ?? 'Unknown customer'} />
@@ -72,7 +73,7 @@ export function CustomerTokenPrint({ detail, shop }: CustomerTokenPrintProps) {
         <div className="print-signature-line">Customer Signature</div>
       </div>
 
-      <p className="mt-4 text-center text-sm font-semibold text-slate-700">Thank you for choosing {shop.name}.</p>
+      <p className="mt-4 text-center text-sm font-semibold text-slate-700">Thank you for choosing {brand.name}.</p>
     </section>
   );
 }

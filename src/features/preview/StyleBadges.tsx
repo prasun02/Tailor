@@ -6,7 +6,7 @@ export function StyleBadges({ styles }: { styles: string[] }) {
   return (
     <ul className="flex flex-wrap gap-2">
       {styles.map((style) => (
-        <li key={style} className="max-w-full rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-800">
+        <li key={style} className="max-w-full rounded-lg border border-accent-100 bg-accent-50 px-3 py-1.5 text-sm font-semibold text-brand-900">
           <span className="break-words">{style}</span>
         </li>
       ))}

@@ -110,12 +110,12 @@ vi.mock('../features/shop/shopContext', () => ({
   useShop: () => ({
     currentRole: 'owner',
     currentShopId: 'shop-1',
-    currentShop: { id: 'shop-1', name: 'Nipu Tailors', timezone: 'Asia/Dhaka', currency: 'BDT', default_measurement_unit: 'inch' },
+    currentShop: { id: 'shop-1', name: 'Faabrico', timezone: 'Asia/Dhaka', currency: 'BDT', default_measurement_unit: 'inch' },
   }),
 }));
 
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({ data: { name: 'Nipu Tailors', phone: '01700000000', address: 'Barisal' }, isLoading: false, isError: false }),
+  useQuery: () => ({ data: { name: 'Faabrico', phone: '+880 1714-793555', address: '5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka' }, isLoading: false, isError: false }),
 }));
 
 vi.mock('../features/orders/orderHooks', () => ({

@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { appBrand } from '../app/brand';
 import { Loader2, Store, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -34,9 +35,9 @@ export function OnboardingPage() {
     defaultValues: {
       ownerFullName: '',
       ownerPhone: '',
-      shopName: '',
-      shopPhone: '',
-      shopAddress: '',
+      shopName: appBrand.name,
+      shopPhone: appBrand.phone,
+      shopAddress: appBrand.address,
     },
   });
 
@@ -89,7 +90,7 @@ export function OnboardingPage() {
         shop_name: values.shopName,
         shop_phone: values.shopPhone,
         shop_address: values.shopAddress,
-        shop_logo_url: null,
+        shop_logo_url: appBrand.logoUrl || null,
       });
 
       if (rpcError) {
@@ -126,9 +127,9 @@ export function OnboardingPage() {
             <Store aria-hidden="true" className="h-6 w-6" />
           </span>
           <div>
-            <h1 className="text-2xl font-semibold text-slate-950">Create your shop</h1>
+            <h1 className="text-2xl font-semibold text-slate-950">Create your Faabrico shop</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              This creates the shop through the secure Supabase RPC and makes your signed-in user the owner.
+              This creates the Faabrico shop through the secure Supabase RPC and makes your signed-in user the owner.
             </p>
           </div>
         </div>
@@ -147,15 +148,16 @@ export function OnboardingPage() {
             error={errors.ownerPhone?.message}
             {...register('ownerPhone')}
           />
-          <TextField label="Shop name" error={errors.shopName?.message} {...register('shopName')} />
+          <TextField label="Shop name" placeholder="Faabrico" error={errors.shopName?.message} {...register('shopName')} />
           <TextField
             label="Shop phone"
+            placeholder="+880 1714-793555"
             autoComplete="tel"
             inputMode="tel"
             error={errors.shopPhone?.message}
             {...register('shopPhone')}
           />
-          <TextAreaField label="Shop address" rows={4} error={errors.shopAddress?.message} {...register('shopAddress')} />
+          <TextAreaField label="Shop address" placeholder="5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka" rows={4} error={errors.shopAddress?.message} {...register('shopAddress')} />
 
           {serverError ? (
             <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{serverError}</div>

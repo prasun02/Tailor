@@ -271,7 +271,7 @@ describe('New order style, measurement, and fabric flow', () => {
     await user.click(screen.getByRole('button', { name: /open big preview/i }));
 
     expect(screen.getByRole('dialog', { name: /shirt estimated preview/i })).toBeInTheDocument();
-    expect(screen.getAllByText('Measurement summary').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Key measurements').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Style summary').length).toBeGreaterThan(0);
   });
 

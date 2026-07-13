@@ -49,7 +49,7 @@ export function LoginPage() {
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
         <h1 className="text-2xl font-semibold text-slate-950">Sign in</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Use Supabase email and password authentication to access your tailor shop workspace.
+          Use Supabase email and password authentication to access the Faabrico bespoke tailoring desk.
         </p>
 
         {params.get('reset') === 'success' ? (

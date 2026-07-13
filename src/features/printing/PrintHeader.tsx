@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { initialsForName, type ShopBrand } from './printModel';
+import { initialsForName, withShopBrandDefaults, type ShopBrand } from './printModel';
 import './printStyles.css';
 
 type PrintHeaderProps = {
@@ -10,23 +10,24 @@ type PrintHeaderProps = {
 };
 
 export function PrintHeader({ shop, title, subtitle, orderNumber }: PrintHeaderProps) {
+  const brand = withShopBrandDefaults(shop);
   const [logoFailed, setLogoFailed] = useState(false);
-  const showLogo = Boolean(shop.logo_url && !logoFailed);
+  const showLogo = Boolean(brand.logo_url && !logoFailed);
 
   return (
     <header className="print-header">
       <div className="print-brand">
-        <div className="print-logo" aria-label={`${shop.name} logo`}>
+        <div className="print-logo" aria-label={`${brand.name} logo`}>
           {showLogo ? (
-            <img src={shop.logo_url ?? ''} alt={`${shop.name} logo`} onError={() => setLogoFailed(true)} />
+            <img src={brand.logo_url ?? ''} alt={`${brand.name} logo`} onError={() => setLogoFailed(true)} />
           ) : (
-            <span>{initialsForName(shop.name)}</span>
+            <span>{initialsForName(brand.name)}</span>
           )}
         </div>
         <div>
-          <p className="print-shop-name">{shop.name}</p>
-          {shop.address ? <p className="print-muted">{shop.address}</p> : null}
-          {shop.phone ? <p className="print-muted">{shop.phone}</p> : null}
+          <p className="print-shop-name">{brand.name}</p>
+          {brand.address ? <p className="print-muted">{brand.address}</p> : null}
+          {brand.phone ? <p className="print-muted">{brand.phone}</p> : null}
         </div>
       </div>
       <div className="text-right">
