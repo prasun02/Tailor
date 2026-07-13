@@ -1,12 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-600: #0f766e;
-  --color-brand-700: #0f5f59;
-  --color-brand-900: #143b39;
-  --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --color-brand-50: #F8F5EF;
+  --color-brand-100: #EFE7DA;
+  --color-brand-200: #E6E0D6;
+  --color-brand-300: #D6BD82;
+  --color-brand-600: #172033;
+  --color-brand-700: #111827;
+  --color-brand-900: #0B1220;
+  --color-accent-500: #B68A35;
+  --color-success-600: #0F766E;
+  --shadow-panel: 0 1px 2px rgba(23, 32, 51, 0.07), 0 10px 30px rgba(23, 32, 51, 0.04);
 }
 
 :root {
@@ -15,13 +19,22 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --app-bg: #F8F5EF;
+  --app-card: #FFFFFF;
+  --app-text: #1F2933;
+  --app-muted: #667085;
+  --app-border: #E6E0D6;
+  --app-navy: #172033;
+  --app-gold: #B68A35;
+  --app-print-text: #111827;
+  --app-print-border: #D1D5DB;
 }
 
 body {
   min-width: 320px;
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--app-bg);
+  color: var(--app-text);
 }
 
 button,
@@ -31,9 +44,14 @@ textarea {
   font: inherit;
 }
 
+::selection {
+  background: #D6BD82;
+  color: #111827;
+}
+
 @media print {
   @page {
-    margin: 12mm;
+    margin: 10mm;
   }
 
   .no-print {
@@ -42,6 +60,7 @@ textarea {
 
   body {
     background: #ffffff;
+    color: var(--app-print-text);
   }
 
   main {
@@ -49,9 +68,20 @@ textarea {
     padding: 0 !important;
   }
 
+  .compact-print,
   .receipt-print {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  .page-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    break-after: page;
+    page-break-after: always;
   }
 }
 

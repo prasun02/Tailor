@@ -27,7 +27,7 @@ import type { GarmentDesign } from '../features/designs/types';
 import { DynamicField } from '../features/measurements/components/DynamicField';
 import { displayDynamicValue, jsonObject, optionObjects } from '../features/measurements/components/display';
 import { useMeasurementFields, useStyleFields } from '../features/measurements/configurationHooks';
-import { validateGarmentItemDetails } from '../features/orders/orderFlowValidation';
+import { validateFabricReferenceDetails, validateMeasurementDetails, validateStyleOptionDetails } from '../features/orders/orderFlowValidation';
 import { createMeasurementVersion } from '../features/measurements/measurementService';
 import type { GarmentType, MeasurementField, MeasurementSet, StyleField } from '../features/measurements/types';
 import { dueAfterAdvance, lineTotal, subtotal, totalAfterDiscount } from '../features/orders/orderCalculations';
@@ -49,14 +49,16 @@ import { useShop } from '../features/shop/shopContext';
 import type { MeasurementUnit } from '../types/database';
 import { canAssignWorkers, canCreateOrders, canManageConfiguration } from '../utils/authorization';
 import { cn } from '../utils/cn';
-import { formatCurrency } from '../utils/format';
+import { formatCurrency, formatDate } from '../utils/format';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
 const steps = [
   'Customer Details',
   'Garment Items',
   'Choose Design',
-  'Style & Measurements',
+  'Style Options',
+  'Measurements',
+  'Fabric / Cloth Reference',
   'Preview Garment',
   'Payment & Delivery',
   'Final Preview',
@@ -203,16 +205,29 @@ export function NewOrderPage() {
     }
 
     if (targetStep === 3) {
-      Object.assign(nextErrors, validateGarmentItemDetails({
+      Object.assign(nextErrors, validateStyleOptionDetails({
         items: values.items,
         styleFields: allStyleFieldsQuery.data ?? [],
+        configurationLoading: allStyleFieldsQuery.isLoading,
+      }));
+    }
+
+    if (targetStep === 4) {
+      Object.assign(nextErrors, validateMeasurementDetails({
+        items: values.items,
         measurementFields: allMeasurementFieldsQuery.data ?? [],
-        uploadingFabricItemIds,
-        configurationLoading: allStyleFieldsQuery.isLoading || allMeasurementFieldsQuery.isLoading,
+        configurationLoading: allMeasurementFieldsQuery.isLoading,
       }));
     }
 
     if (targetStep === 5) {
+      Object.assign(nextErrors, validateFabricReferenceDetails({
+        items: values.items,
+        uploadingFabricItemIds,
+      }));
+    }
+
+    if (targetStep === 7) {
       if (!values.orderDate) nextErrors.orderDate = 'Order date is required.';
       if (!values.deliveryDate) nextErrors.deliveryDate = 'Delivery date is required.';
       if (Number(values.discountAmount) > subtotalValue) nextErrors.discountAmount = 'Discount cannot exceed subtotal.';
@@ -290,7 +305,7 @@ export function NewOrderPage() {
     setFlowError('');
     setShouldPrintAfterCreate(printAfterCreate);
 
-    const validationErrorsByStep = [0, 1, 3, 5].map((index) => ({ index, errors: collectStepErrors(index) }));
+    const validationErrorsByStep = [0, 1, 3, 4, 5, 7].map((index) => ({ index, errors: collectStepErrors(index) }));
     const firstInvalidStep = validationErrorsByStep.find((entry) => Object.keys(entry.errors).length > 0);
     const mergedErrors = validationErrorsByStep.reduce<Record<string, string>>((acc, entry) => ({ ...acc, ...entry.errors }), {});
 
@@ -312,7 +327,7 @@ export function NewOrderPage() {
           nextErrors[issue.path.join('.')] = issue.message;
         }
         setErrors(nextErrors);
-        setStep(parsed.error.issues.some((issue) => issue.path[0] === 'items') ? 3 : 5);
+        setStep(parsed.error.issues.some((issue) => issue.path[0] === 'items') ? 4 : 7);
         return;
       }
 
@@ -379,9 +394,9 @@ export function NewOrderPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
             <ClipboardCheck aria-hidden="true" className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-950">New Design Order</h1>
+          <h1 className="text-2xl font-semibold text-slate-950">New Bespoke Order</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-            Customer details, garment selection, design preview, measurement entry, payment, and final confirmation in one guided flow.
+            Customer-facing order entry for design selection, style choices, measurements, fabric reference, payment, and final confirmation.
           </p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-panel">
@@ -389,7 +404,7 @@ export function NewOrderPage() {
         </div>
       </header>
 
-      <nav className="grid gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-panel sm:grid-cols-2 lg:grid-cols-7" aria-label="Order steps">
+      <nav className="grid gap-2 rounded-lg border border-brand-200 bg-white p-2 shadow-panel sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-9" aria-label="Order steps">
         {steps.map((label, index) => (
           <button
             key={label}
@@ -397,7 +412,7 @@ export function NewOrderPage() {
             onClick={() => setStep(index)}
             className={cn(
               'min-h-12 rounded-lg px-2 text-xs font-semibold transition',
-              step === index ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100',
+              step === index ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-brand-50 hover:text-brand-900',
             )}
           >
             <span className="block text-[10px] uppercase tracking-wide opacity-80">Step {index + 1}</span>
@@ -406,7 +421,7 @@ export function NewOrderPage() {
         ))}
       </nav>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel sm:p-5">
+      <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel sm:p-5">
         {step === 0 ? (
           <CustomerStep
             search={search}
@@ -455,6 +470,16 @@ export function NewOrderPage() {
         ) : null}
 
         {step === 3 ? (
+          <StyleOptionsStep
+            items={values.items}
+            garments={contextQuery.data.garments}
+            designs={designs}
+            onUpdateItem={updateItem}
+            errors={errors}
+          />
+        ) : null}
+
+        {step === 4 ? (
           <MeasurementStep
             customerId={values.customerId}
             items={values.items}
@@ -463,23 +488,37 @@ export function NewOrderPage() {
             measurements={measurements}
             defaultUnit={defaultUnit}
             onUpdateItem={updateItem}
+            errors={errors}
+          />
+        ) : null}
+
+        {step === 5 ? (
+          <FabricReferenceStep
+            items={values.items}
+            garments={contextQuery.data.garments}
+            designs={designs}
+            measurements={measurements}
+            onUpdateItem={updateItem}
             onFabricUploadStateChange={setFabricUploadState}
             errors={errors}
           />
         ) : null}
 
-        {step === 4 ? (
+        {step === 6 ? (
           <PreviewGarmentStep
             items={values.items}
             garments={contextQuery.data.garments}
             designs={designs}
             measurements={measurements}
+            onBackToStyle={() => setStep(3)}
+            onBackToMeasurement={() => setStep(4)}
+            onContinue={() => setStep(7)}
           />
         ) : null}
 
-        {step === 5 ? <PaymentDeliveryStep values={values} setValues={setValues} errors={errors} /> : null}
+        {step === 7 ? <PaymentDeliveryStep values={values} setValues={setValues} errors={errors} /> : null}
 
-        {step === 6 ? (
+        {step === 8 ? (
           <FinalPreviewStep
             values={values}
             customerDraft={customerDraft}
@@ -630,11 +669,11 @@ function CustomerStep({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <TextField label="Customer name *" value={customerDraft.name} error={errors.customerName} onChange={(event) => setCustomerDraft((current) => ({ ...current, name: event.target.value }))} />
-        <TextField label="Mobile *" inputMode="tel" value={customerDraft.phone} error={errors.customerPhone} onChange={(event) => setCustomerDraft((current) => ({ ...current, phone: event.target.value }))} />
-        <TextField label="Alternative mobile" inputMode="tel" value={customerDraft.alternativePhone} onChange={(event) => setCustomerDraft((current) => ({ ...current, alternativePhone: event.target.value }))} />
-        <TextField label="Address" value={customerDraft.address} onChange={(event) => setCustomerDraft((current) => ({ ...current, address: event.target.value }))} />
-        <TextAreaField label="Customer notes" value={customerDraft.notes} onChange={(event) => setCustomerDraft((current) => ({ ...current, notes: event.target.value }))} className="md:col-span-2" />
+        <TextField label="Customer name *" placeholder="Enter customer full name" value={customerDraft.name} error={errors.customerName} onChange={(event) => setCustomerDraft((current) => ({ ...current, name: event.target.value }))} />
+        <TextField label="Mobile *" inputMode="tel" placeholder="01XXXXXXXXX" value={customerDraft.phone} error={errors.customerPhone} onChange={(event) => setCustomerDraft((current) => ({ ...current, phone: event.target.value }))} />
+        <TextField label="Alternative mobile" inputMode="tel" placeholder="01XXXXXXXXX" value={customerDraft.alternativePhone} onChange={(event) => setCustomerDraft((current) => ({ ...current, alternativePhone: event.target.value }))} />
+        <TextField label="Address" placeholder="House, road, area" value={customerDraft.address} onChange={(event) => setCustomerDraft((current) => ({ ...current, address: event.target.value }))} />
+        <TextAreaField label="Customer notes" placeholder="Preferred fit, regular requests, or delivery notes" value={customerDraft.notes} onChange={(event) => setCustomerDraft((current) => ({ ...current, notes: event.target.value }))} className="md:col-span-2" />
       </div>
 
       {duplicateCustomer && !selectedCustomer ? (
@@ -701,8 +740,8 @@ function GarmentItemsStep({
               })}
               options={garments.map((garment) => ({ value: garment.id, label: garment.name }))}
             />
-            <TextField label="Quantity *" type="number" inputMode="numeric" value={item.quantity} error={errors[`items.${index}.quantity`]} onChange={(event) => onUpdateItem(item.id, { quantity: Number(event.target.value) })} />
-            <TextField label="Unit price" type="number" inputMode="decimal" value={item.unitPrice} onChange={(event) => onUpdateItem(item.id, { unitPrice: Number(event.target.value) })} />
+            <TextField label="Quantity *" type="number" inputMode="numeric" placeholder="1" value={item.quantity} error={errors[`items.${index}.quantity`]} onChange={(event) => onUpdateItem(item.id, { quantity: Number(event.target.value) })} />
+            <TextField label="Unit price" type="number" inputMode="decimal" placeholder="2500" value={item.unitPrice} onChange={(event) => onUpdateItem(item.id, { unitPrice: Number(event.target.value) })} />
             <TextField label="Item delivery date" type="date" value={item.itemDeliveryDate ?? ''} onChange={(event) => onUpdateItem(item.id, { itemDeliveryDate: event.target.value })} />
             {canAssign ? (
               <SelectBox
@@ -776,7 +815,7 @@ export function DesignSelectionStep({
           <input
             value={designSearch}
             onChange={(event) => setDesignSearch(event.target.value)}
-            placeholder="Search name, code, category, or tag"
+            placeholder="Classic full sleeve formal shirt, SH-001, wedding"
             className="min-h-12 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />
         </label>
@@ -1043,6 +1082,112 @@ function BigPreviewModal({ design, onClose }: { design: GarmentDesign; onClose: 
   );
 }
 
+export function StyleOptionsStep({
+  items,
+  garments,
+  designs,
+  onUpdateItem,
+  errors,
+}: {
+  items: OrderItemFormValues[];
+  garments: GarmentType[];
+  designs: GarmentDesign[];
+  onUpdateItem: (itemId: string, patch: Partial<OrderItemFormValues>) => void;
+  errors: Record<string, string>;
+}) {
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const safeIndex = Math.min(activeItemIndex, Math.max(items.length - 1, 0));
+  const item = items[safeIndex];
+
+  if (!item) {
+    return <EmptyState icon={ShieldAlert} title="No garment item" message="Add a garment item before choosing style options." />;
+  }
+
+  return (
+    <div className="space-y-5">
+      <StepHeader title="Style Options" description="Select the garment style choices after design selection and before measurement entry." />
+      <StepItemPager currentIndex={safeIndex} itemCount={items.length} onIndexChange={setActiveItemIndex} />
+      <StyleOptionsItemEditor
+        item={item}
+        index={safeIndex}
+        garment={garments.find((entry) => entry.id === item.garmentTypeId)}
+        design={designs.find((entry) => entry.id === item.designId) ?? null}
+        onUpdate={(patch) => onUpdateItem(item.id, patch)}
+        errors={errors}
+      />
+    </div>
+  );
+}
+
+function StyleOptionsItemEditor({
+  item,
+  index,
+  garment,
+  design,
+  onUpdate,
+  errors,
+}: {
+  item: OrderItemFormValues;
+  index: number;
+  garment: GarmentType | undefined;
+  design: GarmentDesign | null;
+  onUpdate: (patch: Partial<OrderItemFormValues>) => void;
+  errors: Record<string, string>;
+}) {
+  const { currentShopId } = useShop();
+  const styleFieldsQuery = useStyleFields(currentShopId, item.garmentTypeId || undefined, false);
+  const itemErrorPrefix = `items.${index}`;
+  const styleFields = styleFieldsQuery.data ?? [];
+
+  return (
+    <section className="space-y-4 rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Item {index + 1}</p>
+          <h2 className="text-lg font-semibold text-slate-950">{garment?.name ?? 'Garment'} style options</h2>
+        </div>
+        <span className="inline-flex min-h-8 items-center rounded-full bg-brand-50 px-3 text-xs font-semibold text-brand-700">
+          Style before measurement
+        </span>
+      </div>
+
+      <SelectedDesignSummary design={design} />
+
+      <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <h3 className="text-sm font-semibold text-slate-950">Style Options</h3>
+        <p className="mt-1 text-sm text-slate-600">Choose the visible garment details such as sleeve, collar, cuff, pocket, fit, and finishing style.</p>
+        {styleFieldsQuery.isLoading ? <p className="mt-3 text-sm text-slate-500">Loading style options...</p> : null}
+        {!styleFieldsQuery.isLoading && styleFields.length === 0 ? <p className="mt-3 text-sm text-slate-500">No style options configured for this garment.</p> : null}
+        {errors[`${itemErrorPrefix}.configuration`] ? <p className="mt-3 text-sm font-medium text-red-600">{errors[`${itemErrorPrefix}.configuration`]}</p> : null}
+        {styleFields.length > 0 ? (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {styleFields.map((field) => (
+              <DynamicField
+                key={field.id}
+                id={`${item.id}-${field.field_key}`}
+                label={field.label}
+                labelBn={field.label_bn}
+                type={field.field_type}
+                value={item.styleValues[field.field_key] as string | number | boolean | string[] | null | undefined}
+                required={field.is_required}
+                options={optionObjects(field.options)}
+                placeholder={stylePlaceholder(field.label)}
+                error={errors[`${itemErrorPrefix}.styleValues.${field.field_key}`]}
+                onChange={(value) => onUpdate({ styleValues: { ...item.styleValues, [field.field_key]: value } })}
+              />
+            ))}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4">
+        <h3 className="text-sm font-semibold text-slate-950">Selected Style Summary</h3>
+        {filledEntryCount(item.styleValues) > 0 ? <Snapshot title="Style choices" values={item.styleValues} /> : <p className="mt-2 text-sm text-slate-500">No style options selected yet.</p>}
+      </section>
+    </section>
+  );
+}
+
 export function MeasurementStep({
   customerId,
   items,
@@ -1051,7 +1196,6 @@ export function MeasurementStep({
   measurements,
   defaultUnit,
   onUpdateItem,
-  onFabricUploadStateChange,
   errors,
 }: {
   customerId: string;
@@ -1061,27 +1205,31 @@ export function MeasurementStep({
   measurements: MeasurementSet[];
   defaultUnit: MeasurementUnit;
   onUpdateItem: (itemId: string, patch: Partial<OrderItemFormValues>) => void;
-  onFabricUploadStateChange: (itemId: string, isUploading: boolean) => void;
   errors: Record<string, string>;
 }) {
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const safeIndex = Math.min(activeItemIndex, Math.max(items.length - 1, 0));
+  const item = items[safeIndex];
+
+  if (!item) {
+    return <EmptyState icon={ShieldAlert} title="No garment item" message="Add a garment item before entering measurements." />;
+  }
+
   return (
-    <div className="space-y-4">
-      <StepHeader title="Style and Measurements" description="Select style before taking measurement, then add the fabric reference at the end of each garment item." />
-      {items.map((item, index) => (
-        <MeasurementItemEditor
-          key={item.id}
-          item={item}
-          index={index}
-          customerId={customerId}
-          garment={garments.find((entry) => entry.id === item.garmentTypeId)}
-          design={designs.find((entry) => entry.id === item.designId) ?? null}
-          measurements={measurements}
-          defaultUnit={defaultUnit}
-          onUpdate={(patch) => onUpdateItem(item.id, patch)}
-          onFabricUploadStateChange={(isUploading) => onFabricUploadStateChange(item.id, isUploading)}
-          errors={errors}
-        />
-      ))}
+    <div className="space-y-5">
+      <StepHeader title="Measurements" description="Enter or select measurements after confirming the garment style choices." />
+      <StepItemPager currentIndex={safeIndex} itemCount={items.length} onIndexChange={setActiveItemIndex} />
+      <MeasurementItemEditor
+        item={item}
+        index={safeIndex}
+        customerId={customerId}
+        garment={garments.find((entry) => entry.id === item.garmentTypeId)}
+        design={designs.find((entry) => entry.id === item.designId) ?? null}
+        measurements={measurements}
+        defaultUnit={defaultUnit}
+        onUpdate={(patch) => onUpdateItem(item.id, patch)}
+        errors={errors}
+      />
     </div>
   );
 }
@@ -1095,7 +1243,6 @@ function MeasurementItemEditor({
   measurements,
   defaultUnit,
   onUpdate,
-  onFabricUploadStateChange,
   errors,
 }: {
   item: OrderItemFormValues;
@@ -1106,61 +1253,44 @@ function MeasurementItemEditor({
   measurements: MeasurementSet[];
   defaultUnit: MeasurementUnit;
   onUpdate: (patch: Partial<OrderItemFormValues>) => void;
-  onFabricUploadStateChange: (isUploading: boolean) => void;
   errors: Record<string, string>;
 }) {
   const { currentShopId } = useShop();
-  const styleFieldsQuery = useStyleFields(currentShopId, item.garmentTypeId || undefined, false);
   const measurementFieldsQuery = useMeasurementFields(currentShopId, item.garmentTypeId || undefined, false);
   const garmentMeasurements = measurements.filter((measurement) => measurement.garment_type_id === item.garmentTypeId);
   const selectedMeasurement = garmentMeasurements.find((measurement) => measurement.id === item.measurementSetId);
   const itemErrorPrefix = `items.${index}`;
-
-  const styleFields = styleFieldsQuery.data ?? [];
   const measurementFields = measurementFieldsQuery.data ?? [];
 
   return (
-    <section className="space-y-4 border-b border-slate-200 pb-5 last:border-b-0 last:pb-0">
-      <div>
-        <h2 className="font-semibold text-slate-950">Item {index + 1}: {garment?.name ?? 'Garment'}</h2>
-        <p className="mt-1 text-xs text-slate-500">Design, style, measurement, fabric, and preview data become immutable order item snapshots.</p>
+    <section className="space-y-4 rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Item {index + 1}</p>
+          <h2 className="text-lg font-semibold text-slate-950">{garment?.name ?? 'Garment'} measurements</h2>
+        </div>
+        <span className="inline-flex min-h-8 items-center rounded-full bg-slate-100 px-3 text-xs font-semibold text-slate-600">
+          {item.measurementMode === 'new' ? 'New measurement' : 'Previous measurement'}
+        </span>
       </div>
 
       <SelectedDesignSummary design={design} />
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
-        <h3 className="text-sm font-semibold text-slate-950">Style Options</h3>
-        <p className="mt-1 text-sm text-slate-600">Select style before taking measurement.</p>
-        {styleFieldsQuery.isLoading ? <p className="mt-3 text-sm text-slate-500">Loading style options...</p> : null}
-        {!styleFieldsQuery.isLoading && styleFields.length === 0 ? <p className="mt-3 text-sm text-slate-500">No style options configured for this garment.</p> : null}
-        {styleFields.length > 0 ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {styleFields.map((field) => (
-              <DynamicField
-                key={field.id}
-                id={`${item.id}-${field.field_key}`}
-                label={field.label}
-                labelBn={field.label_bn}
-                type={field.field_type}
-                value={item.styleValues[field.field_key] as string | number | boolean | string[] | null | undefined}
-                required={field.is_required}
-                options={optionObjects(field.options)}
-                error={errors[`${itemErrorPrefix}.styleValues.${field.field_key}`]}
-                onChange={(value) => onUpdate({ styleValues: { ...item.styleValues, [field.field_key]: value } })}
-              />
-            ))}
-          </div>
-        ) : null}
+      <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <h3 className="text-sm font-semibold text-slate-950">Selected Style Summary</h3>
+        {filledEntryCount(item.styleValues) > 0 ? <Snapshot title="Style choices" values={item.styleValues} /> : <p className="mt-2 text-sm text-slate-500">No style options selected.</p>}
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-4">
-        <h3 className="text-sm font-semibold text-slate-950">Measurements</h3>
-        <p className="mt-1 text-sm text-slate-600">Enter measurement based on selected style.</p>
+        <h3 className="text-sm font-semibold text-slate-950">Measurement Source</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          {garmentMeasurements.length > 0 ? `${garmentMeasurements.length} saved measurement version(s) found for this customer and garment.` : 'No previous measurements found for this garment.'}
+        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => onUpdate({ measurementMode: 'new', measurementSetId: '', measurementUnit: item.measurementUnit || defaultUnit })}
-            className={cn('rounded-lg border px-3 py-2 text-sm font-semibold', item.measurementMode === 'new' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600')}
+            className={cn('rounded-lg border px-3 py-3 text-sm font-semibold', item.measurementMode === 'new' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50')}
           >
             Enter new measurement
           </button>
@@ -1168,11 +1298,13 @@ function MeasurementItemEditor({
             type="button"
             disabled={garmentMeasurements.length === 0}
             onClick={() => onUpdate({ measurementMode: 'previous', measurementSetId: garmentMeasurements[0]?.id ?? '' })}
-            className={cn('rounded-lg border px-3 py-2 text-sm font-semibold disabled:opacity-50', item.measurementMode === 'previous' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600')}
+            className={cn('rounded-lg border px-3 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50', item.measurementMode === 'previous' ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50')}
           >
             Use previous measurement
           </button>
         </div>
+
+        {errors[`${itemErrorPrefix}.configuration`] ? <p className="mt-3 text-sm font-medium text-red-600">{errors[`${itemErrorPrefix}.configuration`]}</p> : null}
 
         {item.measurementMode === 'previous' ? (
           <div className="mt-4">
@@ -1203,8 +1335,106 @@ function MeasurementItemEditor({
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-4">
-        <TextAreaField label="Item special instruction" value={item.specialInstructions ?? ''} onChange={(event) => onUpdate({ specialInstructions: event.target.value })} />
+        <TextAreaField
+          label="Item special instruction"
+          placeholder="Example: Keep loose fit, add inner pocket, urgent delivery"
+          value={item.specialInstructions ?? ''}
+          onChange={(event) => onUpdate({ specialInstructions: event.target.value })}
+        />
       </section>
+    </section>
+  );
+}
+
+export function FabricReferenceStep({
+  items,
+  garments,
+  designs,
+  measurements,
+  onUpdateItem,
+  onFabricUploadStateChange,
+  errors,
+}: {
+  items: OrderItemFormValues[];
+  garments: GarmentType[];
+  designs: GarmentDesign[];
+  measurements: MeasurementSet[];
+  onUpdateItem: (itemId: string, patch: Partial<OrderItemFormValues>) => void;
+  onFabricUploadStateChange: (itemId: string, isUploading: boolean) => void;
+  errors: Record<string, string>;
+}) {
+  const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const safeIndex = Math.min(activeItemIndex, Math.max(items.length - 1, 0));
+  const item = items[safeIndex];
+
+  if (!item) {
+    return <EmptyState icon={ShieldAlert} title="No garment item" message="Add a garment item before adding fabric references." />;
+  }
+
+  return (
+    <div className="space-y-5">
+      <StepHeader title="Fabric / Cloth Reference" description="Add the actual customer-selected cloth reference after measurements. Design samples and fabric references stay separate." />
+      <StepItemPager currentIndex={safeIndex} itemCount={items.length} onIndexChange={setActiveItemIndex} />
+      <FabricReferenceItemEditor
+        item={item}
+        index={safeIndex}
+        garment={garments.find((entry) => entry.id === item.garmentTypeId)}
+        design={designs.find((entry) => entry.id === item.designId) ?? null}
+        measurements={measurements}
+        onUpdate={(patch) => onUpdateItem(item.id, patch)}
+        onFabricUploadStateChange={(isUploading) => onFabricUploadStateChange(item.id, isUploading)}
+        errors={errors}
+      />
+    </div>
+  );
+}
+
+function FabricReferenceItemEditor({
+  item,
+  index,
+  garment,
+  design,
+  measurements,
+  onUpdate,
+  onFabricUploadStateChange,
+  errors,
+}: {
+  item: OrderItemFormValues;
+  index: number;
+  garment: GarmentType | undefined;
+  design: GarmentDesign | null;
+  measurements: MeasurementSet[];
+  onUpdate: (patch: Partial<OrderItemFormValues>) => void;
+  onFabricUploadStateChange: (isUploading: boolean) => void;
+  errors: Record<string, string>;
+}) {
+  const itemErrorPrefix = `items.${index}`;
+
+  return (
+    <section className="space-y-4 rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">Item {index + 1}</p>
+          <h2 className="text-lg font-semibold text-slate-950">{garment?.name ?? 'Garment'} fabric reference</h2>
+        </div>
+        <span className="inline-flex min-h-8 items-center rounded-full bg-slate-100 px-3 text-xs font-semibold text-slate-600">
+          {item.fabricReferenceUrl ? 'Fabric added' : 'Fabric skipped'}
+        </span>
+      </div>
+
+      <SelectedDesignSummary design={design} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-sm font-semibold text-slate-950">Style and Measurement Status</h3>
+          <div className="mt-3 grid gap-3 text-sm">
+            <SummaryLine label="Style options" value={`${filledEntryCount(item.styleValues)} selected`} />
+            <SummaryLine label="Measurements" value={`${filledEntryCount(measurementValuesForItem(item, measurements))} entered`} />
+            <SummaryLine label="Measurement source" value={item.measurementMode === 'new' ? 'New measurement' : 'Previous measurement'} />
+          </div>
+        </section>
+        <ItemPreviewSummary item={item} garment={garment} design={design} measurements={measurements} />
+      </div>
 
       <FabricReferenceSection
         item={item}
@@ -1212,12 +1442,54 @@ function MeasurementItemEditor({
         onUpdate={onUpdate}
         onUploadStateChange={onFabricUploadStateChange}
       />
-
-      <ItemPreviewSummary item={item} garment={garment} design={design} measurements={measurements} />
     </section>
   );
 }
 
+function StepItemPager({
+  currentIndex,
+  itemCount,
+  onIndexChange,
+}: {
+  currentIndex: number;
+  itemCount: number;
+  onIndexChange: (index: number) => void;
+}) {
+  if (itemCount <= 1) return null;
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-semibold text-slate-700">Garment item {currentIndex + 1} of {itemCount}</p>
+      <div className="flex flex-wrap gap-2">
+        {Array.from({ length: itemCount }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => onIndexChange(index)}
+            className={cn(
+              'min-h-9 rounded-lg border px-3 text-sm font-semibold',
+              currentIndex === index ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-100',
+            )}
+          >
+            Item {index + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function filledEntryCount(values: Record<string, unknown>): number {
+  return Object.values(values).filter((value) => value !== '' && value !== null && value !== undefined && (!Array.isArray(value) || value.length > 0)).length;
+}
+
+function stylePlaceholder(label: string): string {
+  return `Select ${label.toLowerCase()}`;
+}
+
+function measurementPlaceholder(label: string): string {
+  return `Enter ${label.toLowerCase()} size`;
+}
 function SelectedDesignSummary({ design }: { design: GarmentDesign | null }) {
   if (!design) {
     return (
@@ -1368,7 +1640,7 @@ function FabricReferenceSection({
 
       {mode === 'url' ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_12rem]">
-          <TextField label="Fabric image URL" value={item.fabricReferenceUrl ?? ''} error={error} onChange={(event) => onUpdate({ fabricReferenceMode: 'url', fabricReferenceUrl: event.target.value })} />
+          <TextField label="Fabric image URL" placeholder="Paste fabric/reference image URL" value={item.fabricReferenceUrl ?? ''} error={error} onChange={(event) => onUpdate({ fabricReferenceMode: 'url', fabricReferenceUrl: event.target.value })} />
           {item.fabricReferenceUrl ? (
             <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
           ) : (
@@ -1455,7 +1727,7 @@ function NewMeasurementEditor({
             { value: 'cm', label: 'Centimeters' },
           ]}
         />
-        <TextField label="Measurement notes" value={item.measurementNotes ?? ''} onChange={(event) => onUpdate({ measurementNotes: event.target.value })} />
+        <TextField label="Measurement notes" placeholder="Example: Shoulder slightly relaxed, keep sleeve comfortable" value={item.measurementNotes ?? ''} onChange={(event) => onUpdate({ measurementNotes: event.target.value })} />
       </div>
       {isLoading ? <p className="mt-3 text-sm text-slate-500">Loading measurement fields...</p> : null}
       {!isLoading && fields.length === 0 ? <p className="mt-3 text-sm text-slate-500">No configured fields for this garment. Enter notes or configure fields in Settings.</p> : null}
@@ -1471,6 +1743,12 @@ function NewMeasurementEditor({
               type={field.field_type}
               value={item.measurementValues[field.field_key] as string | number | boolean | string[] | null | undefined}
               required={field.is_required}
+              unitLabel={field.unit}
+              placeholder={field.placeholder ?? measurementPlaceholder(field.label)}
+              helpText={field.help_text}
+              minimum={field.minimum_value}
+              maximum={field.maximum_value}
+              step={field.step_value}
               options={[]}
               error={fieldErrors[field.field_key]}
               onChange={(value) => onUpdate({ measurementValues: { ...item.measurementValues, [field.field_key]: value } })}
@@ -1487,11 +1765,17 @@ export function PreviewGarmentStep({
   garments,
   designs,
   measurements,
+  onBackToStyle,
+  onBackToMeasurement,
+  onContinue,
 }: {
   items: OrderItemFormValues[];
   garments: GarmentType[];
   designs: GarmentDesign[];
   measurements: MeasurementSet[];
+  onBackToStyle?: () => void;
+  onBackToMeasurement?: () => void;
+  onContinue?: () => void;
 }) {
   return (
     <div className="space-y-5">
@@ -1524,6 +1808,26 @@ export function PreviewGarmentStep({
           />
         );
       })}
+      <div className="no-print flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-end">
+        {onBackToStyle ? (
+          <button type="button" onClick={onBackToStyle} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+            Back to Style
+          </button>
+        ) : null}
+        {onBackToMeasurement ? (
+          <button type="button" onClick={onBackToMeasurement} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+            Back to Measurement
+          </button>
+        ) : null}
+        {onContinue ? (
+          <button type="button" onClick={onContinue} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700">
+            Continue
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -1549,11 +1853,11 @@ function PaymentDeliveryStep({
         <TextField label="Trial date" type="date" value={values.trialDate ?? ''} onChange={(event) => setValues((current) => ({ ...current, trialDate: event.target.value }))} />
         <TextField label="Delivery date *" type="date" value={values.deliveryDate ?? ''} error={errors.deliveryDate} onChange={(event) => setValues((current) => ({ ...current, deliveryDate: event.target.value }))} />
         <SelectBox label="Priority" value={values.priority} onChange={(value) => setValues((current) => ({ ...current, priority: value as OrderWizardValues['priority'] }))} options={orderPriorities.map((priority) => ({ value: priority, label: priority }))} />
-        <TextField label="Discount" type="number" inputMode="decimal" value={values.discountAmount} error={errors.discountAmount} onChange={(event) => setValues((current) => ({ ...current, discountAmount: Number(event.target.value) }))} />
-        <TextField label="Advance" type="number" inputMode="decimal" value={values.advanceAmount} error={errors.advanceAmount} onChange={(event) => setValues((current) => ({ ...current, advanceAmount: Number(event.target.value) }))} />
+        <TextField label="Discount" type="number" inputMode="decimal" placeholder="0" value={values.discountAmount} error={errors.discountAmount} onChange={(event) => setValues((current) => ({ ...current, discountAmount: Number(event.target.value) }))} />
+        <TextField label="Advance" type="number" inputMode="decimal" placeholder="1000" value={values.advanceAmount} error={errors.advanceAmount} onChange={(event) => setValues((current) => ({ ...current, advanceAmount: Number(event.target.value) }))} />
         <SelectBox label="Payment method" value={values.paymentMethod} onChange={(value) => setValues((current) => ({ ...current, paymentMethod: value as OrderWizardValues['paymentMethod'] }))} options={paymentMethods.map((method) => ({ value: method, label: method.replace('_', ' ') }))} />
-        <TextField label="Payment reference" value={values.paymentReference ?? ''} onChange={(event) => setValues((current) => ({ ...current, paymentReference: event.target.value }))} />
-        <TextAreaField label="General order notes" value={values.notes ?? ''} onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))} className="md:col-span-2" />
+        <TextField label="Payment reference" placeholder="Cash memo or transaction reference" value={values.paymentReference ?? ''} onChange={(event) => setValues((current) => ({ ...current, paymentReference: event.target.value }))} />
+        <TextAreaField label="General order notes" placeholder="Example: Keep loose fit, add inner pocket, urgent delivery" value={values.notes ?? ''} onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))} className="md:col-span-2" />
       </div>
       <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-4">
         <Summary label="Subtotal" value={formatCurrency(subtotalValue)} />
@@ -1565,7 +1869,7 @@ function PaymentDeliveryStep({
   );
 }
 
-function FinalPreviewStep({
+export function FinalPreviewStep({
   values,
   customerDraft,
   selectedCustomer,
@@ -1588,76 +1892,103 @@ function FinalPreviewStep({
 }) {
   return (
     <div className="space-y-5">
-      <StepHeader title="Final Preview and Confirm" description="Check customer, design, measurement, delivery, and payment details before confirming." />
-      <section className="rounded-lg border border-slate-200 p-4">
-        <h2 className="font-semibold text-slate-950">Customer</h2>
-        <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-          <SummaryLine label="Name" value={customerDraft.name || selectedCustomer?.name || 'Not set'} />
-          <SummaryLine label="Mobile" value={customerDraft.phone || 'Not set'} />
-          <SummaryLine label="Address" value={customerDraft.address || 'Not set'} />
-          <SummaryLine label="Customer code" value={selectedCustomer?.customer_code ?? 'New customer'} />
-        </div>
-      </section>
+      <StepHeader title="Final Preview" description="Confirm the customer, garment, delivery, and payment summary before saving the order." />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+          <h2 className="font-semibold text-slate-950">Customer Summary</h2>
+          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <SummaryLine label="Name" value={customerDraft.name || selectedCustomer?.name || 'Not set'} />
+            <SummaryLine label="Mobile" value={customerDraft.phone || 'Not set'} />
+            <SummaryLine label="Address" value={customerDraft.address || 'Not set'} />
+            <SummaryLine label="Customer code" value={selectedCustomer?.customer_code ?? 'New customer'} />
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+          <h2 className="font-semibold text-slate-950">Order Summary</h2>
+          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <SummaryLine label="Token / order no" value="Will be generated" />
+            <SummaryLine label="Order date" value={formatDate(values.orderDate)} />
+            <SummaryLine label="Delivery date" value={formatDate(values.deliveryDate)} />
+            <SummaryLine label="Trial date" value={formatDate(values.trialDate)} />
+            <SummaryLine label="Priority" value={values.priority} />
+            <SummaryLine label="Items" value={`${values.items.length} garment item(s)`} />
+          </div>
+        </section>
+      </div>
 
       <section className="space-y-4">
+        <div>
+          <h2 className="font-semibold text-slate-950">Garment Items</h2>
+          <p className="mt-1 text-sm text-slate-600">Design, fabric, style, measurement, and instruction snapshots for each order item.</p>
+        </div>
+
         {values.items.map((item, index) => {
           const garment = garments.find((entry) => entry.id === item.garmentTypeId);
           const design = designs.find((entry) => entry.id === item.designId) ?? null;
           const measurement = measurements.find((entry) => entry.id === item.measurementSetId);
           const measurementValues = measurementValuesForItem(item, measurements);
           const fabricReferenceUrl = item.fabricReferenceUrl || null;
-          const previewSummary = buildPreviewSummary({
-            garmentName: garment?.name ?? 'Garment',
-            design,
-            item: { ...item, fabricReferenceUrl: fabricReferenceUrl ?? '' },
-            measurementValues,
-          });
+          const designLabel = design ? `${design.design_name}${design.design_code ? ` (${design.design_code})` : ''}` : 'No design selected';
 
           return (
-            <article key={item.id} className="space-y-3 rounded-lg border border-slate-200 p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="font-semibold text-slate-950">Item {index + 1}: {garment?.name ?? 'No garment selected'}</h3>
-                  <p className="mt-1 text-sm text-slate-600">Quantity {item.quantity} x {formatCurrency(item.unitPrice)} = {formatCurrency(lineTotal(item))}</p>
+            <article key={item.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel">
+              <div className="grid gap-4 lg:grid-cols-[10rem_1fr]">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Design</p>
+                    <ThumbnailImage src={design?.preview_image_url} className="h-28 w-full rounded-lg border border-slate-200" />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Fabric</p>
+                    <ThumbnailImage src={fabricReferenceUrl} className="h-28 w-full rounded-lg border border-slate-200" />
+                  </div>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">{item.measurementMode === 'new' ? 'New measurement' : 'Previous measurement'}</span>
+
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-slate-950">Item {index + 1}: {garment?.name ?? 'No garment selected'}</h3>
+                      <p className="mt-1 text-sm text-slate-600">Quantity {item.quantity} x {formatCurrency(item.unitPrice)} = {formatCurrency(lineTotal(item))}</p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{item.measurementMode === 'new' ? 'New measurement' : 'Previous measurement'}</span>
+                  </div>
+
+                  <div className="grid gap-3 text-sm md:grid-cols-2">
+                    <SummaryLine label="Selected design" value={designLabel} />
+                    <SummaryLine label="Fabric reference" value={fabricReferenceUrl ? 'Added' : 'Skipped'} />
+                    <SummaryLine label="Measurement source" value={item.measurementMode === 'new' ? 'New measurement' : measurement ? `Version ${measurement.version_number}` : 'Previous measurement'} />
+                    <SummaryLine label="Item delivery" value={formatDate(item.itemDeliveryDate)} />
+                  </div>
+
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <Snapshot title="Compact style summary" values={item.styleValues} />
+                    <Snapshot title="Compact measurement summary" values={measurementValues} />
+                  </div>
+
+                  {item.specialInstructions ? <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{item.specialInstructions}</p> : null}
+                </div>
               </div>
-              <GarmentPreviewCard
-                title="Estimated garment preview"
-                garmentName={garment?.name ?? 'Garment'}
-                designName={design?.design_name}
-                styleCategory={design?.style_category}
-                previewImageUrl={design?.preview_image_url}
-                fabricReferenceUrl={fabricReferenceUrl}
-                previewVideoUrl={design?.preview_video_url ?? item.previewVideoUrl}
-                measurementValues={measurementValues}
-                styleValues={item.styleValues}
-                previewSummary={previewSummary}
-                compact
-              />
-              {item.measurementMode === 'new' ? <Snapshot title="Measurement values" values={item.measurementValues} /> : null}
-              {item.measurementMode === 'previous' ? <Snapshot title={`Measurement ${measurement ? `Version ${measurement.version_number}` : ''}`} values={measurement ? jsonObject(measurement.values) : {}} /> : null}
-              <Snapshot title="Style choices" values={item.styleValues} />
-              <Snapshot title="Preview summary" values={previewSummary} />
-              {item.specialInstructions ? <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{item.specialInstructions}</p> : null}
             </article>
           );
         })}
       </section>
 
-      <section className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
-        <SummaryLine label="Order date" value={values.orderDate || 'Not set'} />
-        <SummaryLine label="Delivery date" value={values.deliveryDate || 'Not set'} />
-        <SummaryLine label="Subtotal" value={formatCurrency(subtotalValue)} />
-        <SummaryLine label="Discount" value={formatCurrency(values.discountAmount)} />
-        <SummaryLine label="Total" value={formatCurrency(totalValue)} />
-        <SummaryLine label="Advance" value={formatCurrency(values.advanceAmount)} />
-        <SummaryLine label="Due" value={formatCurrency(dueValue)} />
+      <section className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">
+        <h2 className="font-semibold text-slate-950">Payment Summary</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <Summary label="Subtotal" value={formatCurrency(subtotalValue)} />
+          <Summary label="Discount" value={formatCurrency(values.discountAmount)} />
+          <Summary label="Total" value={formatCurrency(totalValue)} />
+          <Summary label="Advance" value={formatCurrency(values.advanceAmount)} />
+          <Summary label="Due" value={formatCurrency(dueValue)} />
+          <Summary label="Method" value={values.paymentMethod.replace('_', ' ')} />
+        </div>
       </section>
     </div>
   );
 }
-
 function SelectBox({
   label,
   value,

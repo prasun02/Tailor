@@ -50,6 +50,7 @@ vi.mock('../features/uploads/imageUpload', async () => {
     ...actual,
     uploadImageToStorage: mocks.uploadImageToStorage,
   };
+
 });
 
 describe('DesignLibrarySettingsPage', () => {
@@ -118,5 +119,13 @@ describe('DesignLibrarySettingsPage', () => {
     await waitFor(() => {
       expect(mocks.createDesign).toHaveBeenCalledWith(expect.objectContaining({ previewImageUrl: 'https://example.com/panjabi.jpg' }));
     });
+  });
+  it('shows professional design form placeholders', () => {
+    render(<DesignLibrarySettingsPage />);
+
+    expect(screen.getByPlaceholderText('Classic full sleeve formal shirt')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('SH-001')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Formal / Casual / Wedding / Office')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Paste fabric/reference image URL')).toBeInTheDocument();
   });
 });

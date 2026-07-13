@@ -2,15 +2,12 @@ import {
   BarChart3,
   Banknote,
   ClipboardList,
-  Images,
-  PackageCheck,
   Gauge,
+  PackageCheck,
   Search,
-  Ruler,
   Scissors,
   Settings,
   Shirt,
-  UsersRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,18 +18,16 @@ export type NavigationItem = {
 };
 
 export const appNavigation: NavigationItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: Gauge },
-  { to: '/orders/new', label: 'New Order Entry', icon: Scissors },
-  { to: '/token-search', label: 'Token / Customer Search', icon: Search },
-  { to: '/settings/designs', label: 'Design Library', icon: Images },
-  { to: '/customers', label: 'Customers', icon: UsersRound },
-  { to: '/measurements', label: 'Measurements', icon: Ruler },
+  { to: '/orders/new', label: 'New Order', icon: Scissors },
+  { to: '/token-search', label: 'Search / Delivery', icon: Search },
   { to: '/orders', label: 'Orders', icon: ClipboardList },
-  { to: '/production', label: 'Production Board', icon: Shirt },
-  { to: '/deliveries', label: 'Delivery', icon: PackageCheck },
-  { to: '/payments', label: 'Payments / Due', icon: Banknote },
+  { to: '/production', label: 'Production', icon: Shirt },
+  { to: '/payments', label: 'Payments', icon: Banknote },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/dashboard', label: 'Dashboard', icon: Gauge },
 ];
+
+export const deliveryNavigationItem: NavigationItem = { to: '/deliveries', label: 'Delivery Queue', icon: PackageCheck };
 
 export const appLogoIcon = Scissors;

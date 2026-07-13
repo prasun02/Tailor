@@ -1,4 +1,4 @@
-import type { MeasurementField, StyleField } from '../measurements/types';
+﻿import type { MeasurementField, StyleField } from '../measurements/types';
 import { validateMeasurementValues, validateStyleValues } from '../measurements/dynamicValidation';
 import type { OrderItemFormValues } from './orderSchemas';
 
@@ -8,6 +8,23 @@ type GarmentItemValidationInput = {
   measurementFields: MeasurementField[];
   uploadingFabricItemIds?: ReadonlySet<string>;
   configurationLoading?: boolean;
+};
+
+type StyleStepValidationInput = {
+  items: OrderItemFormValues[];
+  styleFields: StyleField[];
+  configurationLoading?: boolean;
+};
+
+type MeasurementStepValidationInput = {
+  items: OrderItemFormValues[];
+  measurementFields: MeasurementField[];
+  configurationLoading?: boolean;
+};
+
+type FabricStepValidationInput = {
+  items: OrderItemFormValues[];
+  uploadingFabricItemIds?: ReadonlySet<string>;
 };
 
 function itemHasMeasurementValues(item: OrderItemFormValues): boolean {
@@ -36,21 +53,51 @@ export function validateGarmentItemDetails({
   uploadingFabricItemIds = new Set<string>(),
   configurationLoading = false,
 }: GarmentItemValidationInput): Record<string, string> {
+  return {
+    ...validateStyleOptionDetails({ items, styleFields, configurationLoading }),
+    ...validateMeasurementDetails({ items, measurementFields, configurationLoading }),
+    ...validateFabricReferenceDetails({ items, uploadingFabricItemIds }),
+  };
+}
+
+export function validateStyleOptionDetails({
+  items,
+  styleFields,
+  configurationLoading = false,
+}: StyleStepValidationInput): Record<string, string> {
   const errors: Record<string, string> = {};
 
   items.forEach((item, index) => {
     const prefix = `items.${index}`;
     const itemStyleFields = styleFields.filter((field) => field.garment_type_id === item.garmentTypeId);
-    const itemMeasurementFields = measurementFields.filter((field) => field.garment_type_id === item.garmentTypeId);
 
     if (configurationLoading) {
-      errors[`${prefix}.configuration`] = 'Style and measurement setup is still loading.';
+      errors[`${prefix}.configuration`] = 'Style setup is still loading.';
     }
 
     const styleValidation = validateStyleValues(itemStyleFields, item.styleValues);
     Object.entries(styleValidation.errors).forEach(([fieldKey, message]) => {
       errors[`${prefix}.styleValues.${fieldKey}`] = message;
     });
+  });
+
+  return errors;
+}
+
+export function validateMeasurementDetails({
+  items,
+  measurementFields,
+  configurationLoading = false,
+}: MeasurementStepValidationInput): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  items.forEach((item, index) => {
+    const prefix = `items.${index}`;
+    const itemMeasurementFields = measurementFields.filter((field) => field.garment_type_id === item.garmentTypeId);
+
+    if (configurationLoading) {
+      errors[`${prefix}.configuration`] = 'Measurement setup is still loading.';
+    }
 
     if (item.measurementMode === 'previous') {
       if (!item.measurementSetId) {
@@ -66,6 +113,19 @@ export function validateGarmentItemDetails({
         errors[`${prefix}.measurementValues.${fieldKey}`] = message;
       });
     }
+  });
+
+  return errors;
+}
+
+export function validateFabricReferenceDetails({
+  items,
+  uploadingFabricItemIds = new Set<string>(),
+}: FabricStepValidationInput): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  items.forEach((item, index) => {
+    const prefix = `items.${index}`;
 
     if (!isValidOptionalHttpUrl(item.fabricReferenceUrl)) {
       errors[`${prefix}.fabricReferenceUrl`] = 'Enter an http or https fabric image URL.';

@@ -79,11 +79,19 @@ export function ProductionJobCardPrint({ detail, shop }: ProductionJobCardPrintP
         </section>
       </div>
 
+      <div className="print-check-grid">
+        <div className="print-check-item">[ ] Cutting</div>
+        <div className="print-check-item">[ ] Stitching</div>
+        <div className="print-check-item">[ ] Finishing</div>
+        <div className="print-check-item">[ ] QC</div>
+        <div className="print-check-item">[ ] Ready</div>
+      </div>
+
       <div className="print-signature-grid print-signature-grid--four">
         <div className="print-signature-line">Cutter Signature</div>
         <div className="print-signature-line">Tailor Signature</div>
         <div className="print-signature-line">QC Signature</div>
-        <div className="print-signature-line">Delivery-Ready Confirmation</div>
+        <div className="print-signature-line">Supervisor Signature</div>
       </div>
     </section>
   );

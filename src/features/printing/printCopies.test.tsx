@@ -142,6 +142,11 @@ describe('print copies', () => {
     expect(screen.queryByText('Advance Paid')).not.toBeInTheDocument();
     expect(screen.queryByText('Due Amount')).not.toBeInTheDocument();
     expect(screen.queryByText(/BDT/)).not.toBeInTheDocument();
+    expect(screen.getByText('[ ] Cutting')).toBeInTheDocument();
+    expect(screen.getByText('[ ] Stitching')).toBeInTheDocument();
+    expect(screen.getByText('[ ] Finishing')).toBeInTheDocument();
+    expect(screen.getByText('[ ] QC')).toBeInTheDocument();
+    expect(screen.getByText('[ ] Ready')).toBeInTheDocument();
   });
 
   it('renders a store copy with full order and payment details', () => {

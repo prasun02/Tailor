@@ -91,7 +91,7 @@ export function DesignLibrarySettingsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="min-h-12 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-base outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
-              placeholder="Search name, code, or category"
+              placeholder="Classic full sleeve formal shirt, SH-001, wedding"
             />
           </label>
           <SelectBox
@@ -225,9 +225,9 @@ function DesignForm({
           options={garments.map((garment) => ({ value: garment.id, label: garment.name }))}
           onChange={(value) => update('garmentTypeId', value)}
         />
-        <TextField label="Design name *" value={values.name} error={errors.name} onChange={(event) => update('name', event.target.value)} />
-        <TextField label="Design code *" value={values.code} error={errors.code} onChange={(event) => update('code', event.target.value.toUpperCase().replace(/\s+/g, '_'))} />
-        <TextField label="Style category" value={values.styleCategory} error={errors.styleCategory} onChange={(event) => update('styleCategory', event.target.value)} />
+        <TextField label="Design name *" placeholder="Classic full sleeve formal shirt" value={values.name} error={errors.name} onChange={(event) => update('name', event.target.value)} />
+        <TextField label="Design code *" placeholder="SH-001" value={values.code} error={errors.code} onChange={(event) => update('code', event.target.value.toUpperCase().replace(/\s+/g, '_'))} />
+        <TextField label="Style category" placeholder="Formal / Casual / Wedding / Office" value={values.styleCategory} error={errors.styleCategory} onChange={(event) => update('styleCategory', event.target.value)} />
         <DesignImageUploadField
           label="Preview image upload"
           shopId={shopId}
@@ -238,8 +238,8 @@ function DesignForm({
           onClear={() => update('previewImageUrl', '')}
           onUploadingChange={setUploadingPreview}
         />
-        <TextField label="Preview image URL" value={values.previewImageUrl} error={errors.previewImageUrl} onChange={(event) => update('previewImageUrl', event.target.value)} />
-        <TextField label="Preview video URL optional" value={values.previewVideoUrl} error={errors.previewVideoUrl} onChange={(event) => update('previewVideoUrl', event.target.value)} />
+        <TextField label="Preview image URL" placeholder="Paste design/reference image URL" value={values.previewImageUrl} error={errors.previewImageUrl} onChange={(event) => update('previewImageUrl', event.target.value)} />
+        <TextField label="Preview video URL optional" placeholder="Paste optional preview video URL" value={values.previewVideoUrl} error={errors.previewVideoUrl} onChange={(event) => update('previewVideoUrl', event.target.value)} />
         <DesignImageUploadField
           label="Cloth/reference image upload optional"
           shopId={shopId}
@@ -250,10 +250,10 @@ function DesignForm({
           onClear={() => update('clothReferenceUrl', '')}
           onUploadingChange={setUploadingCloth}
         />
-        <TextField label="Cloth/reference image URL optional" value={values.clothReferenceUrl} error={errors.clothReferenceUrl} onChange={(event) => update('clothReferenceUrl', event.target.value)} />
+        <TextField label="Cloth/reference image URL optional" placeholder="Paste fabric/reference image URL" value={values.clothReferenceUrl} error={errors.clothReferenceUrl} onChange={(event) => update('clothReferenceUrl', event.target.value)} />
         <TextField label="Sort order" type="number" value={values.sortOrder} error={errors.sortOrder} onChange={(event) => update('sortOrder', Number(event.target.value))} />
-        <TextField label="Tags" value={values.tagsText} error={errors.tagsText} description="Separate tags with commas." onChange={(event) => update('tagsText', event.target.value)} className="md:col-span-2" />
-        <TextAreaField label="Description" value={values.description} error={errors.description} onChange={(event) => update('description', event.target.value)} className="md:col-span-2" />
+        <TextField label="Tags" placeholder="formal, wedding, premium" value={values.tagsText} error={errors.tagsText} description="Separate tags with commas." onChange={(event) => update('tagsText', event.target.value)} className="md:col-span-2" />
+        <TextAreaField label="Description" placeholder="Short customer-facing design description" value={values.description} error={errors.description} onChange={(event) => update('description', event.target.value)} className="md:col-span-2" />
         <TextAreaField label="Style metadata JSON" value={values.styleMetadataText} error={errors.styleMetadataText} description='Example: {"fit":"Regular fit","collar":"Band","pocket":"Single"}' onChange={(event) => update('styleMetadataText', event.target.value)} className="font-mono md:col-span-2" />
       </div>
       {values.previewImageUrl ? (

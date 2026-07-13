@@ -54,7 +54,7 @@ export function CustomerForm({
         <TextField
           label="Customer name"
           autoComplete="name"
-          placeholder="Rahim Uddin / ???? ??????"
+          placeholder="Enter customer full name"
           error={errors.name?.message}
           {...register('name')}
         />
@@ -62,7 +62,7 @@ export function CustomerForm({
           label="Phone"
           inputMode="tel"
           autoComplete="tel"
-          placeholder="01700000000"
+          placeholder="01XXXXXXXXX"
           error={errors.phone?.message}
           description="Optional. Used for duplicate checks and phone search."
           {...register('phone')}
@@ -71,7 +71,7 @@ export function CustomerForm({
           label="Alternative phone"
           inputMode="tel"
           autoComplete="tel"
-          placeholder="Optional backup number"
+          placeholder="01XXXXXXXXX"
           error={errors.alternativePhone?.message}
           {...register('alternativePhone')}
         />
