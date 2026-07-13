@@ -125,6 +125,14 @@ export const router = createBrowserRouter([
         lazy: pageModule(() => import('../pages/ShopProfileSettingsPage'), 'ShopProfileSettingsPage'),
       },
       {
+        path: 'settings/sms',
+        lazy: pageModule(() => import('../pages/SmsSettingsPage'), 'SmsSettingsPage'),
+      },
+      {
+        path: 'settings/backup',
+        lazy: pageModule(() => import('../pages/BackupCentrePage'), 'BackupCentrePage'),
+      },
+      {
         path: 'settings/garments',
         lazy: pageModule(() => import('../pages/GarmentSettingsPage'), 'GarmentSettingsPage'),
       },
@@ -152,3 +160,4 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
 ]);
+

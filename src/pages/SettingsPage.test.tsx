@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { SettingsPage } from './SettingsPage';
 
 describe('SettingsPage', () => {
-  it('groups design, measurement, staff, print, shop profile, and backup setup under Settings', () => {
+  it('groups design, measurement, SMS, staff, print, shop profile, and backup setup under Settings', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
@@ -17,7 +17,8 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Style Fields')).toBeInTheDocument();
     expect(screen.getByText('Staff')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Shop Profile/i })).toHaveAttribute('href', '/settings/shop-profile');
+    expect(screen.getByRole('link', { name: /SMS Settings/i })).toHaveAttribute('href', '/settings/sms');
     expect(screen.getByText('Print Settings')).toBeInTheDocument();
-    expect(screen.getByText('Backup')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Backup/i })).toHaveAttribute('href', '/settings/backup');
   });
 });

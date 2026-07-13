@@ -46,6 +46,7 @@ import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
 import { buildPreviewSummary, designSnapshot, measurementValuesForItem, recordFromUnknown } from '../features/preview/previewUtils';
 import { uploadImageToStorage, validateImageFile } from '../features/uploads/imageUpload';
 import { useShop } from '../features/shop/shopContext';
+import { useSendOrderSms } from '../features/sms/smsHooks';
 import type { MeasurementUnit } from '../types/database';
 import { canAssignWorkers, canCreateOrders, canManageConfiguration } from '../utils/authorization';
 import { cn } from '../utils/cn';
@@ -120,6 +121,7 @@ export function NewOrderPage() {
   const createCustomer = useCreateCustomer(currentShopId ?? '');
   const updateCustomer = useUpdateCustomer(currentShopId ?? '', selectedCustomer?.id ?? '');
   const createOrder = useCreateOrder(currentShopId ?? '');
+  const sendOrderSms = useSendOrderSms(currentShopId ?? '');
   const measurements = measurementsQuery.data ?? [];
   const designs = designsQuery.data ?? [];
   const subtotalValue = subtotal(values.items);
@@ -378,8 +380,16 @@ export function NewOrderPage() {
       }, {});
       const payload = buildCreateOrderPayload({ ...parsed.data, items: finalizedItems }, styleDefinitionsByItemId);
       const result = await createOrder.mutateAsync({ customerId, payload });
+      const smsStatus = await sendOrderSms
+        .mutateAsync({ orderId: result.order.id, templateKey: 'order_confirmed' })
+        .then((smsResult) => smsResult.status)
+        .catch(() => 'failed' as const);
+      const successParams = new URLSearchParams();
+
+      if (printAfterCreate) successParams.set('print', 'customer-token');
+      successParams.set('sms', smsStatus);
       window.localStorage.removeItem(draftKey(currentShopId));
-      navigate(`/orders/${result.order.id}/success${printAfterCreate ? '?print=customer-token' : ''}`);
+      navigate(`/orders/${result.order.id}/success?${successParams.toString()}`);
     } catch (error) {
       setFlowError(error instanceof Error ? error.message : 'Order could not be confirmed.');
     } finally {

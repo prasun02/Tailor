@@ -9,7 +9,20 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ['supabase/functions/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        Deno: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        fetch: 'readonly',
+      },
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
+    ignores: ['supabase/functions/**/*.ts'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -24,3 +37,4 @@ export default tseslint.config(
     },
   },
 );
+

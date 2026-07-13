@@ -19,6 +19,8 @@ export type ProductionStatus =
   | 'cancelled';
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'mobile_banking' | 'other';
 export type PaymentStatus = 'completed' | 'voided';
+export type SmsTemplateKey = 'order_confirmed' | 'order_ready' | 'delivered';
+export type SmsLogStatus = 'queued' | 'sent' | 'failed' | 'skipped';
 
 type TableDefinition<Row, Insert, Update> = {
   Row: Row;
@@ -415,6 +417,55 @@ export type Database = {
         Record<string, Json | undefined>,
         Record<string, Json | undefined>
       >;
+      sms_templates: TableDefinition<
+        {
+          id: Uuid;
+          shop_id: Uuid;
+          template_key: SmsTemplateKey;
+          body: string;
+          is_active: boolean;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        },
+        {
+          id?: Uuid;
+          shop_id: Uuid;
+          template_key: SmsTemplateKey;
+          body: string;
+          is_active?: boolean;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        },
+        {
+          id?: Uuid;
+          shop_id?: Uuid;
+          template_key?: SmsTemplateKey;
+          body?: string;
+          is_active?: boolean;
+          updated_at?: Timestamp;
+        }
+      >;
+      sms_logs: TableDefinition<
+        {
+          id: Uuid;
+          shop_id: Uuid;
+          order_id: Uuid;
+          customer_id: Uuid | null;
+          template_key: SmsTemplateKey;
+          recipient_phone: string | null;
+          message_body: string;
+          provider_name: string | null;
+          provider_message_id: string | null;
+          status: SmsLogStatus;
+          error_message: string | null;
+          requested_by: Uuid | null;
+          sent_at: Timestamp | null;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        },
+        never,
+        never
+      >;
       order_status_history: TableDefinition<
         {
           id: Uuid;
@@ -457,6 +508,8 @@ export type Database = {
       production_status: ProductionStatus;
       payment_method: PaymentMethod;
       payment_status: PaymentStatus;
+      sms_template_key: SmsTemplateKey;
+      sms_log_status: SmsLogStatus;
     };
     Functions: {
       create_shop_with_owner: {
@@ -530,9 +583,31 @@ export type Database = {
           default_measurement_unit: MeasurementUnit;
         }[];
       };
+      request_order_sms: {
+        Args: { target_shop_id: Uuid; target_order_id: Uuid; target_template_key: SmsTemplateKey };
+        Returns: {
+          log_id: Uuid;
+          recipient_phone: string | null;
+          message_body: string;
+          provider_name: string | null;
+          should_send: boolean;
+        }[];
+      };
+      record_sms_delivery_result: {
+        Args: {
+          target_log_id: Uuid;
+          delivery_status: Extract<SmsLogStatus, 'sent' | 'failed' | 'skipped'>;
+          target_provider_name?: string | null;
+          target_provider_message_id?: string | null;
+          target_error_message?: string | null;
+        };
+        Returns: Database['public']['Tables']['sms_logs']['Row'];
+      };
     };
     CompositeTypes: Record<string, never>;
   };
 };
+
+
 
 

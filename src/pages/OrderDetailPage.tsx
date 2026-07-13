@@ -4,10 +4,12 @@ import {
   CheckCircle2,
   ClipboardList,
   FileText,
+  MessageSquare,
   PackageCheck,
   Printer,
   ReceiptText,
   Scissors,
+  Send,
   ShieldAlert,
   type LucideIcon,
 } from 'lucide-react';
@@ -22,6 +24,9 @@ import { voidPaymentSchema } from '../features/orders/orderSchemas';
 import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
 import { recordFromUnknown } from '../features/preview/previewUtils';
 import { useShop } from '../features/shop/shopContext';
+import { useOrderSmsLogs, useSendOrderSms } from '../features/sms/smsHooks';
+import { smsTemplateLabels, type SmsLog } from '../features/sms/smsService';
+import type { SmsTemplateKey } from '../types/database';
 import { canArchiveOrders, canRecordPayments, canVoidPayments } from '../utils/authorization';
 import { cn } from '../utils/cn';
 import { formatCurrency, formatDate, formatDateTime } from '../utils/format';
@@ -36,6 +41,8 @@ export function OrderDetailPage() {
   const voidPayment = useVoidOrderPayment(currentShopId ?? '', orderId ?? '');
   const changeStatus = useChangeOrderItemStatus(currentShopId ?? '');
   const confirmDelivery = useConfirmOrderDelivery(currentShopId ?? '');
+  const smsLogsQuery = useOrderSmsLogs(currentShopId, orderId);
+  const sendSms = useSendOrderSms(currentShopId ?? '');
   const [voidPaymentId, setVoidPaymentId] = useState('');
   const [voidReason, setVoidReason] = useState('');
   const [voidError, setVoidError] = useState('');
@@ -83,6 +90,11 @@ export function OrderDetailPage() {
     await confirmDelivery.mutateAsync({ orderItemId: itemId, note: 'Delivered to customer' });
   }
 
+  async function handleSendSms(templateKey: SmsTemplateKey) {
+    if (!orderId) return;
+    await sendSms.mutateAsync({ orderId, templateKey });
+  }
+
   return (
     <div className="space-y-5">
       {searchParams.get('created') ? (
@@ -110,6 +122,13 @@ export function OrderDetailPage() {
       </header>
 
       <PrintCopiesPanel orderId={order.id} />
+      <SmsPanel
+        logs={smsLogsQuery.data ?? []}
+        isLoading={smsLogsQuery.isLoading}
+        isSending={sendSms.isPending}
+        error={smsLogsQuery.error?.message ?? sendSms.error?.message}
+        onSend={(templateKey) => void handleSendSms(templateKey)}
+      />
 
       <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-panel sm:grid-cols-2 lg:grid-cols-5 print:border-0 print:p-0 print:shadow-none">
         <Summary label="Subtotal" value={formatCurrency(order.subtotal)} />
@@ -239,6 +258,80 @@ function snapshotString(values: Record<string, unknown>, keys: string[]): string
   return null;
 }
 
+const smsActions: { templateKey: SmsTemplateKey; label: string }[] = [
+  { templateKey: 'order_confirmed', label: 'Send confirmed SMS' },
+  { templateKey: 'order_ready', label: 'Send ready SMS' },
+  { templateKey: 'delivered', label: 'Send delivered SMS' },
+];
+
+const smsStatusStyles: Record<SmsLog['status'], string> = {
+  queued: 'bg-slate-100 text-slate-700',
+  sent: 'bg-emerald-50 text-emerald-800',
+  failed: 'bg-red-50 text-red-700',
+  skipped: 'bg-amber-50 text-amber-800',
+};
+
+function SmsPanel({
+  logs,
+  isLoading,
+  isSending,
+  error,
+  onSend,
+}: {
+  logs: SmsLog[];
+  isLoading: boolean;
+  isSending: boolean;
+  error?: string | null;
+  onSend: (templateKey: SmsTemplateKey) => void;
+}) {
+  return (
+    <section className="no-print rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+            <MessageSquare aria-hidden="true" className="h-5 w-5" />
+          </div>
+          <h2 className="text-base font-semibold text-slate-950">SMS Status</h2>
+          <p className="mt-1 text-sm text-slate-600">Send order updates through the Supabase Edge Function and review recent gateway logs.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {smsActions.map((action) => (
+            <button
+              key={action.templateKey}
+              type="button"
+              disabled={isSending}
+              onClick={() => onSend(action.templateKey)}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Send aria-hidden="true" className="h-4 w-4" />
+              {action.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error ? <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
+
+      <div className="mt-4 divide-y divide-slate-100">
+        {isLoading ? <p className="py-3 text-sm text-slate-500">Loading SMS logs...</p> : null}
+        {!isLoading && logs.length === 0 ? <p className="py-3 text-sm text-slate-500">No SMS attempts recorded for this order.</p> : null}
+        {logs.map((log) => (
+          <div key={log.id} className="py-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-semibold text-slate-950">{smsTemplateLabels[log.template_key]}</p>
+              <span className={cn('w-fit rounded-full px-2 py-0.5 text-xs font-semibold capitalize', smsStatusStyles[log.status])}>{log.status}</span>
+            </div>
+            <p className="mt-1 text-sm text-slate-600">To {log.recipient_phone ?? 'No phone'} - requested {formatDateTime(log.created_at)}</p>
+            {log.provider_name || log.provider_message_id ? (
+              <p className="mt-1 text-xs text-slate-500">Provider {log.provider_name ?? 'unknown'}{log.provider_message_id ? ` - ${log.provider_message_id}` : ''}</p>
+            ) : null}
+            {log.error_message ? <p className="mt-1 text-sm font-medium text-red-700">{log.error_message}</p> : null}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 function PrintCopiesPanel({ orderId }: { orderId: string }) {
   return (
     <section id="print-copies" className="no-print rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
@@ -294,3 +387,5 @@ function Snapshot({ title, values }: { title: string; values: Record<string, unk
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import { Archive, Images, Printer, Ruler, Settings, Shirt, SlidersHorizontal, Store, UsersRound, type LucideIcon } from 'lucide-react';
+import { Archive, Images, MessageSquare, Printer, Ruler, Settings, Shirt, SlidersHorizontal, Store, UsersRound, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { appBrand } from '../app/brand';
 import { PageScaffold } from '../components/PageScaffold';
@@ -19,8 +19,9 @@ const settingsLinks: SettingsLink[] = [
   { to: '/settings/style-fields', label: 'Style Fields', description: 'Configure style options such as collar, cuff, pocket, fit, and finishing.', icon: SlidersHorizontal, status: 'ready' },
   { label: 'Staff', description: 'Invite and manage owner, manager, staff, cutter, tailor, and viewer access.', icon: UsersRound, status: 'planned' },
   { to: '/settings/shop-profile', label: 'Shop Profile', description: `${appBrand.name}, phone, address, logo URL, and receipt identity.`, icon: Store, status: 'ready' },
+  { to: '/settings/sms', label: 'SMS Settings', description: 'Edit order SMS templates while provider credentials stay in Supabase Edge Function secrets.', icon: MessageSquare, status: 'ready' },
   { label: 'Print Settings', description: 'Customer token, production copy, and store copy preferences.', icon: Printer, status: 'planned' },
-  { label: 'Backup', description: 'Export guidance and low-cost shop data backup workflow.', icon: Archive, status: 'planned' },
+  { to: '/settings/backup', label: 'Backup', description: 'Owner-only CSV and complete shop JSON exports for backup responsibility.', icon: Archive, status: 'ready' },
 ];
 
 export function SettingsPage() {

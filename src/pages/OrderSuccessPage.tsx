@@ -1,5 +1,5 @@
-import { CheckCircle2, ClipboardList, Plus, Printer, ReceiptText, Scissors, ShieldAlert, type LucideIcon } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { CheckCircle2, ClipboardList, MessageSquare, Plus, Printer, ReceiptText, Scissors, ShieldAlert, type LucideIcon } from 'lucide-react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
 import { useOrderDetail } from '../features/orders/orderHooks';
@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from '../utils/format';
 
 export function OrderSuccessPage() {
   const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
   const { currentShopId } = useShop();
   const orderQuery = useOrderDetail(currentShopId, orderId);
 
@@ -17,6 +18,7 @@ export function OrderSuccessPage() {
   }
 
   const { order, customer, financial } = orderQuery.data;
+  const smsStatus = searchParams.get('sms');
 
   return (
     <div className="space-y-5">
@@ -37,6 +39,8 @@ export function OrderSuccessPage() {
         </div>
       </section>
 
+      {smsStatus ? <SmsStatusNotice status={smsStatus} /> : null}
+
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
         <h2 className="text-base font-semibold text-slate-950">Quick actions</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -48,6 +52,29 @@ export function OrderSuccessPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function SmsStatusNotice({ status }: { status: string }) {
+  const normalized = status === 'sent' || status === 'skipped' || status === 'failed' ? status : 'failed';
+  const styles = {
+    sent: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+    skipped: 'border-amber-200 bg-amber-50 text-amber-900',
+    failed: 'border-red-200 bg-red-50 text-red-900',
+  } satisfies Record<typeof normalized, string>;
+  const message = {
+    sent: 'Order confirmation SMS sent.',
+    skipped: 'Order saved, but SMS was skipped because the customer phone or active template is missing.',
+    failed: 'Order saved, but SMS could not be sent. Check SMS logs and Edge Function secrets.',
+  } satisfies Record<typeof normalized, string>;
+
+  return (
+    <section className={`rounded-lg border p-4 text-sm font-medium shadow-panel ${styles[normalized]}`}>
+      <div className="flex items-center gap-2">
+        <MessageSquare aria-hidden="true" className="h-4 w-4" />
+        {message[normalized]}
+      </div>
+    </section>
   );
 }
 
