@@ -3,10 +3,10 @@ import { LockKeyhole, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation } from 'react-router-dom';
+import { appBrand } from '../app/brand';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
 import { useAuth } from '../features/auth/authContext';
-import { appEnv } from '../lib/env';
 import { loginSchema, type LoginFormValues } from '../validations/auth';
 
 export function LoginPage() {
@@ -115,7 +115,7 @@ export function LoginPage() {
 
       <EmptyState
         icon={Mail}
-        title={appEnv.appName}
+        title={appBrand.name}
         message="Sign in, restore your browser session, and continue into the active shop connected to your account."
       />
     </div>

@@ -135,7 +135,7 @@ export function ShopProfileSettingsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Company / shop name" placeholder="Faabrico" error={errors.name?.message} {...register('name')} />
           <TextField label="Shop phone" placeholder="+880 1714-793555" inputMode="tel" error={errors.phone?.message} {...register('phone')} />
-          <TextField label="Logo URL" placeholder="Paste Faabrico logo URL" error={errors.logoUrl?.message} description="Optional. Header, sidebar, and print copies use a Faabrico monogram if the logo is empty or unavailable." {...register('logoUrl')} />
+          <TextField label="Logo URL" placeholder="Paste Faabrico logo URL" error={errors.logoUrl?.message} description="Optional. Header, sidebar, and print copies use the bundled Faabrico logo or Faabrico text if this URL is empty or unavailable." {...register('logoUrl')} />
           <TextAreaField label="Shop address" placeholder="5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka" rows={4} error={errors.address?.message} className="md:col-span-2" {...register('address')} />
         </div>
 

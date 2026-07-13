@@ -77,7 +77,7 @@ export default defineConfig(({ command }) => ({
     VitePWA({
       disable: command !== 'build',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/icon.svg'],
+      includeAssets: ['favicon.svg', 'icons/icon.svg', 'brand/faabrico-logo-140x47.png'],
       manifest: {
         name: 'Faabrico',
         short_name: 'Faabrico',

@@ -2039,7 +2039,7 @@ function SelectBox({
 function StepHeader({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-lg border border-brand-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase text-accent-700">Faabrico order flow</p>
+      <p className="text-xs font-semibold uppercase text-accent-700">Faabrico Order Flow</p>
       <h2 className="mt-1 text-xl font-semibold text-slate-950">{title}</h2>
       <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
     </div>

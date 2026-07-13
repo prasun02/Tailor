@@ -116,8 +116,15 @@ vi.mock('../features/shop/shopContext', () => ({
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: () => ({ data: { name: 'Faabrico', phone: '+880 1714-793555', address: '5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka' }, isLoading: false, isError: false }),
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+  useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
+
+vi.mock('../features/sms/smsHooks', () => ({
+  useOrderSmsLogs: () => ({ data: [], isLoading: false, error: null }),
+  useSendOrderSms: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
+}));
 vi.mock('../features/orders/orderHooks', () => ({
   useOrderDetail: () => ({ data: orderDetail, isLoading: false, isError: false, error: null }),
   useArchiveOrder: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),

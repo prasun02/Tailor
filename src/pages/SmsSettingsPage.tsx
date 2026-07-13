@@ -1,5 +1,5 @@
 import { MessageSquare, Save, ShieldAlert } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { PageScaffold } from '../components/PageScaffold';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
@@ -38,7 +38,7 @@ export function SmsSettingsPage() {
           ) : null}
           {templatesQuery.data?.map((template) => (
             <SmsTemplateCard
-              key={template.id}
+              key={`${template.id}:${template.updated_at}:${template.is_active}`}
               template={template}
               isSaving={updateTemplate.isPending}
               onSave={(values) => updateTemplate.mutate({ templateId: template.id, values })}
@@ -92,10 +92,6 @@ function SmsTemplateCard({
   const [body, setBody] = useState(template.body);
   const [isActive, setIsActive] = useState(template.is_active);
 
-  useEffect(() => {
-    setBody(template.body);
-    setIsActive(template.is_active);
-  }, [template.body, template.is_active]);
 
   return (
     <article className="rounded-lg border border-brand-200 bg-white p-4 shadow-panel">

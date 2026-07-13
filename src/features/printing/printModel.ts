@@ -1,4 +1,4 @@
-import { appBrand, brandInitials } from '../../app/brand';
+import { appBrand } from '../../app/brand';
 import type { OrderDetail } from '../orders/orderService';
 
 export type ShopBrand = {
@@ -24,7 +24,18 @@ export type PrintItemDesign = {
 
 type OrderItem = OrderDetail['items'][number];
 
-const genericShopNames = new Set(['tailor store manager', 'tailor shop', 'example tailors', 'nipu tailors', 'nipun tailors']);
+const genericShopNames = new Set([
+  'tailor store manager',
+  'tailor store app',
+  'tailor store',
+  'smart tailor manager',
+  'denim-cut',
+  'denim cut',
+  'tailor shop',
+  'example tailors',
+  'nipu tailors',
+  'nipun tailors',
+]);
 const genericPhones = new Set(['01700000000']);
 const genericAddresses = new Set(['shop address', 'barisal']);
 
@@ -62,17 +73,6 @@ export function fallbackShopBrand(name?: string | null): ShopBrand {
   return withShopBrandDefaults({ name });
 }
 
-export function initialsForName(name: string): string {
-  const words = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2);
-
-  if (words.length === 0) return brandInitials();
-
-  return brandInitials(name);
-}
 
 export function recordFromPrintValue(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

@@ -1,5 +1,6 @@
 import { AlertTriangle, Banknote, CalendarClock, Images, PackageCheck, Plus, Search, Shirt, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { appBrand } from '../app/brand';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
 import { useDashboardWorklists, useTailorDashboardMetrics } from '../features/orders/orderHooks';
@@ -30,7 +31,7 @@ export function DashboardPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
             <CalendarClock aria-hidden="true" className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-950">Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-slate-950">{appBrand.name} Dashboard</h1>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">Start new orders, track delivery pressure, production work, and due balances.</p>
         </div>
         <Link to="/orders/new" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700">

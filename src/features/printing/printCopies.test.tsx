@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { OrderDetail } from '../orders/orderService';
 import { AllPrintCopies } from './AllPrintCopies';
@@ -132,6 +132,9 @@ describe('print copies', () => {
     render(<ProductionJobCardPrint detail={detail} shop={shop} />);
 
     expect(screen.getByTestId('production-copy')).toBeInTheDocument();
+    expect(screen.getByText('Faabrico')).toBeInTheDocument();
+    expect(screen.getByText('+880 1714-793555')).toBeInTheDocument();
+    expect(screen.getByText('5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka')).toBeInTheDocument();
     expect(screen.getByText('Full Measurement Snapshot')).toBeInTheDocument();
     expect(screen.getByText('Chest')).toBeInTheDocument();
     expect(screen.getByText('44')).toBeInTheDocument();
@@ -153,6 +156,9 @@ describe('print copies', () => {
     render(<StoreOwnerCopyPrint detail={detail} shop={shop} printedBy="owner@example.com" printedAt={new Date('2026-07-11T08:00:00.000Z')} />);
 
     expect(screen.getByTestId('store-copy')).toBeInTheDocument();
+    expect(screen.getByText('Faabrico')).toBeInTheDocument();
+    expect(screen.getByText('+880 1714-793555')).toBeInTheDocument();
+    expect(screen.getByText('5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka')).toBeInTheDocument();
     expect(screen.getByText('Dhaka')).toBeInTheDocument();
     expect(screen.getByText('Trial Date')).toBeInTheDocument();
     expect(screen.getByText('Total Amount')).toBeInTheDocument();
@@ -165,6 +171,21 @@ describe('print copies', () => {
     expect(screen.getByText('Full sleeve')).toBeInTheDocument();
   });
 
+
+  it('uses Faabrico text fallback when old shop names have no usable logo', () => {
+    render(<CustomerTokenPrint detail={detail} shop={{ name: 'Denim-Cut', phone: null, address: null, logo_url: null }} />);
+
+    expect(screen.getByText('Faabrico')).toBeInTheDocument();
+    expect(screen.getByText('+880 1714-793555')).toBeInTheDocument();
+    expect(screen.getByText('5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka')).toBeInTheDocument();
+    expect(screen.queryByText('Denim-Cut')).not.toBeInTheDocument();
+
+    fireEvent.error(screen.getByAltText('Faabrico logo'));
+
+    expect(screen.getAllByText('Faabrico').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('D')).not.toBeInTheDocument();
+  });
+
   it('separates all copies with print page breaks', () => {
     const { container } = render(<AllPrintCopies detail={detail} shop={shop} />);
 
@@ -173,8 +194,10 @@ describe('print copies', () => {
     expect(screen.getByTestId('customer-token-copy')).toBeInTheDocument();
     expect(screen.getByTestId('production-copy')).toBeInTheDocument();
     expect(screen.getByTestId('store-copy')).toBeInTheDocument();
+    expect(screen.getAllByText('Faabrico')).toHaveLength(3);
+    expect(screen.getAllByText('+880 1714-793555')).toHaveLength(3);
+    expect(screen.getAllByText('5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka')).toHaveLength(3);
   });
-
   it('uses saved order snapshots and handles missing images without crashing', () => {
     const missingImageDetail: OrderDetail = {
       ...detail,

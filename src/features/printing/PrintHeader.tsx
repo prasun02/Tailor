@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { initialsForName, withShopBrandDefaults, type ShopBrand } from './printModel';
+import { appBrand } from '../../app/brand';
+import { withShopBrandDefaults, type ShopBrand } from './printModel';
 import './printStyles.css';
 
 type PrintHeaderProps = {
@@ -21,7 +22,7 @@ export function PrintHeader({ shop, title, subtitle, orderNumber }: PrintHeaderP
           {showLogo ? (
             <img src={brand.logo_url ?? ''} alt={`${brand.name} logo`} onError={() => setLogoFailed(true)} />
           ) : (
-            <span>{initialsForName(brand.name)}</span>
+            <span>{appBrand.name}</span>
           )}
         </div>
         <div>

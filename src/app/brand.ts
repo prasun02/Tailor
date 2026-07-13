@@ -5,7 +5,7 @@ export const appBrand = {
   phone: '+880 1714-793555',
   address: '5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka',
   timezoneCurrency: 'Asia/Dhaka - BDT',
-  logoUrl: '',
+  logoUrl: '/brand/faabrico-logo-140x47.png',
 } as const;
 
 export function brandInitials(name: string = appBrand.name): string {

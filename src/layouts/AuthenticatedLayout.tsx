@@ -7,7 +7,6 @@ import { useAuth } from '../features/auth/authContext';
 import { useShop } from '../features/shop/shopContext';
 import { resolveShopBrand, useShopBrand } from '../features/printing/useShopBrand';
 import type { ShopBrand } from '../features/printing/printModel';
-import { appEnv } from '../lib/env';
 import { appNavigation, type NavigationItem } from '../routes/navigation';
 import { cn } from '../utils/cn';
 
@@ -27,7 +26,7 @@ export function AuthenticatedLayout() {
             <DesktopNavItem key={item.to} item={item} />
           ))}
         </nav>
-        <BusinessInfo email={user?.email} />
+        <BusinessInfo email={user?.email} brand={shellBrand} />
       </aside>
 
       <div className="min-w-0">
@@ -56,12 +55,12 @@ export function AuthenticatedLayout() {
                   >
                     {memberships.map((membership) => (
                       <option key={membership.shop_id} value={membership.shop_id}>
-                        {membership.shop.name}
+                        {resolveShopBrand(null, membership.shop).name}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <span className="truncate font-medium text-brand-50">{appBrand.phone}</span>
+                  <span className="truncate font-medium text-brand-50">{shellBrand.name}</span>
                 )}
               </div>
             </div>
@@ -103,7 +102,7 @@ export function AuthenticatedLayout() {
                 <DesktopNavItem key={item.to} item={item} onNavigate={() => setIsMobileNavOpen(false)} />
               ))}
             </nav>
-            <BusinessInfo email={user?.email} inline />
+            <BusinessInfo email={user?.email} brand={shellBrand} inline />
           </aside>
         </div>
       ) : null}
@@ -116,19 +115,19 @@ function BrandLockup({ brand, compact = false }: { brand: ShopBrand; compact?: b
     <div className="flex min-w-0 items-center gap-3">
       <BrandMark name={brand.name} logoUrl={brand.logo_url} compact={compact} className="bg-brand-800" />
       <div className="min-w-0">
-        <p className="truncate font-semibold text-white">{appEnv.appName}</p>
-        <p className="truncate text-xs text-brand-100">{compact ? appBrand.description : appBrand.subtitle}</p>
+        <p className="truncate font-semibold text-white">{brand.name}</p>
+        <p className="truncate text-xs text-brand-100">{appBrand.subtitle}</p>
       </div>
     </div>
   );
 }
 
-function BusinessInfo({ email, inline = false }: { email?: string | null; inline?: boolean }) {
+function BusinessInfo({ email, brand, inline = false }: { email?: string | null; brand: ShopBrand; inline?: boolean }) {
   return (
     <div className={cn('rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-brand-100', inline ? 'mt-auto' : 'absolute inset-x-3 bottom-4')}>
       <p className="truncate font-semibold text-white">{email ?? 'Signed out'}</p>
-      <p className="mt-1 truncate">{appBrand.phone}</p>
-      <p className="mt-1 leading-5">{appBrand.address}</p>
+      <p className="mt-1 truncate">{brand.phone}</p>
+      <p className="mt-1 leading-5">{brand.address}</p>
       <p className="mt-1 text-accent-100">{appBrand.timezoneCurrency}</p>
     </div>
   );
