@@ -1,4 +1,4 @@
-import type { OrderDetail } from '../orders/orderService';
+﻿import type { OrderDetail } from '../orders/orderService';
 import { formatDate } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
@@ -48,7 +48,7 @@ export function ProductionJobCardPrint({ detail, shop }: ProductionJobCardPrintP
                   <h3 className="print-section-title">Design / Fabric</h3>
                   <div className="print-image-row">
                     <PrintImageThumb src={design.designImageUrl} label="Design Image" />
-                    <PrintImageThumb src={design.fabricImageUrl} label="Fabric Reference" />
+                    <PrintImageThumb src={design.fabricImageUrl} label="Fabric Reference" emptyText={design.fabricStatus} />
                   </div>
                 </div>
 

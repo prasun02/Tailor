@@ -1,4 +1,4 @@
-import { LogOut, Menu, X } from 'lucide-react';
+﻿import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { appBrand } from '../app/brand';
@@ -18,10 +18,10 @@ export function AuthenticatedLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-brand-50 text-slate-950 lg:grid lg:grid-cols-[14.5rem_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r border-brand-800 bg-brand-900 px-3 py-5 text-white lg:block">
+    <div className="min-h-screen bg-brand-50 text-slate-950 lg:grid lg:grid-cols-[17rem_1fr]">
+      <aside className="sticky top-0 hidden h-screen flex-col border-r border-brand-800 bg-brand-900 px-4 py-5 text-white lg:flex">
         <BrandLockup brand={shellBrand} />
-        <nav className="mt-7 space-y-1" aria-label="Main navigation">
+        <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Main navigation">
           {appNavigation.map((item) => (
             <DesktopNavItem key={item.to} item={item} />
           ))}
@@ -97,7 +97,7 @@ export function AuthenticatedLayout() {
                 <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
-            <nav className="mt-7 space-y-1" aria-label="Mobile main navigation">
+            <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Mobile main navigation">
               {appNavigation.map((item) => (
                 <DesktopNavItem key={item.to} item={item} onNavigate={() => setIsMobileNavOpen(false)} />
               ))}
@@ -111,12 +111,20 @@ export function AuthenticatedLayout() {
 }
 
 function BrandLockup({ brand, compact = false }: { brand: ShopBrand; compact?: boolean }) {
+  if (compact) {
+    return (
+      <div className="flex min-w-0 items-center gap-3">
+        <BrandMark name={brand.name} logoUrl={brand.logo_url} compact className="bg-brand-800" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-w-0 items-center gap-3">
-      <BrandMark name={brand.name} logoUrl={brand.logo_url} compact={compact} className="bg-brand-800" />
+    <div className="min-w-0 space-y-3">
+      <BrandMark name={brand.name} logoUrl={brand.logo_url} className="min-w-0 w-full bg-brand-800" />
       <div className="min-w-0">
-        <p className="truncate font-semibold text-white">{brand.name}</p>
-        <p className="truncate text-xs text-brand-100">{appBrand.subtitle}</p>
+        <p className="text-xl font-semibold leading-6 text-white">{brand.name}</p>
+        <p className="mt-1 text-xs leading-5 text-brand-100">{appBrand.subtitle}</p>
       </div>
     </div>
   );
@@ -124,11 +132,14 @@ function BrandLockup({ brand, compact = false }: { brand: ShopBrand; compact?: b
 
 function BusinessInfo({ email, brand, inline = false }: { email?: string | null; brand: ShopBrand; inline?: boolean }) {
   return (
-    <div className={cn('rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-brand-100', inline ? 'mt-auto' : 'absolute inset-x-3 bottom-4')}>
-      <p className="truncate font-semibold text-white">{email ?? 'Signed out'}</p>
-      <p className="mt-1 truncate">{brand.phone}</p>
-      <p className="mt-1 leading-5">{brand.address}</p>
-      <p className="mt-1 text-accent-100">{appBrand.timezoneCurrency}</p>
+    <div className={cn('rounded-lg border border-white/10 bg-white/10 p-3 text-xs text-brand-100', inline ? 'mt-auto' : 'mt-auto')}>
+      <p className="text-[11px] font-semibold uppercase text-accent-100">Signed in</p>
+      <p className="mt-1 break-all font-semibold leading-5 text-white">{email ?? 'Signed out'}</p>
+      <div className="mt-3 border-t border-white/10 pt-3">
+        <p className="font-semibold leading-5 text-brand-50">{brand.phone}</p>
+        <p className="mt-1 leading-5 text-brand-100">{brand.address}</p>
+        <p className="mt-2 text-[11px] font-semibold text-accent-100">{appBrand.timezoneCurrency}</p>
+      </div>
     </div>
   );
 }

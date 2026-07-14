@@ -1,4 +1,4 @@
-import type { OrderDetail } from '../orders/orderService';
+﻿import type { OrderDetail } from '../orders/orderService';
 import { formatCurrency, formatDate } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
@@ -49,7 +49,7 @@ export function CustomerTokenPrint({ detail, shop }: CustomerTokenPrintProps) {
                   <td>
                     <div className="print-image-row">
                       <PrintImageThumb src={design.designImageUrl} label="Design" compact />
-                      <PrintImageThumb src={design.fabricImageUrl} label="Fabric" compact />
+                      <PrintImageThumb src={design.fabricImageUrl} label="Fabric" compact emptyText={design.fabricStatus} />
                     </div>
                   </td>
                 </tr>

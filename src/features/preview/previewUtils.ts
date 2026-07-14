@@ -1,4 +1,5 @@
-import type { Json } from '../../types/database';
+﻿import type { Json } from '../../types/database';
+import { stringFromRecord as displayStringFromRecord, valueFromRecord as displayValueFromRecord } from '../orders/orderDisplayUtils';
 import type { GarmentDesign } from '../designs/types';
 import type { MeasurementSet } from '../measurements/types';
 import type { OrderItemFormValues } from '../orders/orderSchemas';
@@ -148,26 +149,14 @@ function normalizeFitLabel(value: string): string {
 }
 
 function stringFromRecord(record: PreviewRecord, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return null;
+  return displayStringFromRecord(record, keys);
 }
 
 function numberFromRecord(record: PreviewRecord, keys: string[]): number | null {
-  for (const key of keys) {
-    const value = record[key];
-    const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
+  const value = displayValueFromRecord(record, keys);
+  const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
 
-  return null;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 export function fitLabelForPreview(
@@ -295,30 +284,26 @@ export function buildPreviewMetadata({
   styleValues: PreviewRecord;
   previewSummary?: PreviewRecord;
 }): PreviewMetadata {
-  const storedMeasurements = measurementsFromUnknown(previewSummary.keyMeasurements);
-  const storedSnakeMeasurements = storedMeasurements.length > 0 ? storedMeasurements : measurementsFromUnknown(previewSummary.key_measurements);
-  const storedSummaryMeasurements = storedSnakeMeasurements.length > 0 ? storedSnakeMeasurements : measurementsFromSummaryStrings(previewSummary.measurement_summary);
+  const storedMeasurements = measurementsFromUnknown(displayValueFromRecord(previewSummary, ['keyMeasurements', 'key_measurements']));
+  const storedSnakeMeasurements = storedMeasurements.length > 0 ? storedMeasurements : measurementsFromUnknown(displayValueFromRecord(previewSummary, ['key_measurements', 'keyMeasurements']));
+  const storedSummaryMeasurements = storedSnakeMeasurements.length > 0 ? storedSnakeMeasurements : measurementsFromSummaryStrings(displayValueFromRecord(previewSummary, ['measurement_summary', 'measurementSummary']));
   const keyMeasurements = storedMeasurements.length > 0
     ? storedMeasurements
     : storedSummaryMeasurements.length > 0
       ? storedSummaryMeasurements
     : keyMeasurementsForPreview(garmentName, measurementValues);
-  const storedStyles = stringListFromUnknown(previewSummary.styleSummary);
-  const storedSnakeStyles = storedStyles.length > 0 ? storedStyles : stringListFromUnknown(previewSummary.style_summary);
+  const storedStyles = stringListFromUnknown(displayValueFromRecord(previewSummary, ['styleSummary', 'style_summary']));
+  const storedSnakeStyles = storedStyles.length > 0 ? storedStyles : stringListFromUnknown(displayValueFromRecord(previewSummary, ['style_summary', 'styleSummary']));
   const styleSummary = storedStyles.length > 0
     ? storedStyles
     : storedSnakeStyles.length > 0
       ? storedSnakeStyles
       : styleSummaryForPreview(styleValues);
-  const summaryFit = typeof previewSummary.estimatedFit === 'string'
-    ? previewSummary.estimatedFit
-    : typeof previewSummary.fit === 'string'
-      ? previewSummary.fit
-      : '';
+  const summaryFit = displayStringFromRecord(previewSummary, ['estimatedFit', 'estimated_fit', 'fit']) ?? '';
   const estimatedFit = normalizeFitLabel(summaryFit || stringFromRecord(styleValues, ['fit', 'fit_type', 'fit_style']) || 'Regular fit');
   const normalizedFabricUrl = fabricReferenceUrl?.trim() || null;
-  const storedNotes = stringListFromUnknown(previewSummary.visualNotes);
-  const storedSnakeNotes = storedNotes.length > 0 ? storedNotes : stringListFromUnknown(previewSummary.visual_notes);
+  const storedNotes = stringListFromUnknown(displayValueFromRecord(previewSummary, ['visualNotes', 'visual_notes']));
+  const storedSnakeNotes = storedNotes.length > 0 ? storedNotes : stringListFromUnknown(displayValueFromRecord(previewSummary, ['visual_notes', 'visualNotes']));
   const visualNotes = storedNotes.length > 0
     ? storedNotes
     : storedSnakeNotes.length > 0
@@ -426,3 +411,5 @@ export function buildPreviewSummary({
     warning: metadataPreview.warning,
   };
 }
+
+

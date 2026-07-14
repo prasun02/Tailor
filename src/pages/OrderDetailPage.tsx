@@ -1,9 +1,11 @@
-import {
+﻿import {
   Archive,
   Banknote,
   CheckCircle2,
   ClipboardList,
+  ExternalLink,
   FileText,
+  ImageOff,
   MessageSquare,
   PackageCheck,
   Printer,
@@ -17,12 +19,10 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
-import { displayDynamicValue } from '../features/measurements/components/display';
 import { useArchiveOrder, useChangeOrderItemStatus, useConfirmOrderDelivery, useOrderDetail, useVoidOrderPayment } from '../features/orders/orderHooks';
-import { jsonObject } from '../features/orders/orderService';
 import { voidPaymentSchema } from '../features/orders/orderSchemas';
 import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
-import { recordFromUnknown } from '../features/preview/previewUtils';
+import { designDisplayForOrderItem, displayEntries, previewSummaryEntries, recordFromUnknown, type DisplayEntry } from '../features/orders/orderDisplayUtils';
 import { useShop } from '../features/shop/shopContext';
 import { useOrderSmsLogs, useSendOrderSms } from '../features/sms/smsHooks';
 import { smsTemplateLabels, type SmsLog } from '../features/sms/smsService';
@@ -142,15 +142,19 @@ export function OrderDetailPage() {
         <h2 className="text-base font-semibold text-slate-950">Items and job cards</h2>
         <div className="mt-4 space-y-4">
           {items.map((item) => {
-            const measurementSnapshot = jsonObject(item.measurement_snapshot);
-            const styleSnapshot = jsonObject(item.style_snapshot);
-            const design = recordFromUnknown(item.design_snapshot);
+            const measurementSnapshot = recordFromUnknown(item.measurement_snapshot);
+            const styleSnapshot = recordFromUnknown(item.style_snapshot);
             const previewSummary = recordFromUnknown(item.preview_summary);
-            const designName = snapshotString(design, ['design_name', 'name']) ?? 'Custom design';
-            const styleCategory = typeof design.style_category === 'string' ? design.style_category : null;
-            const previewImageUrl = item.design_reference_url ?? (typeof design.preview_image_url === 'string' ? design.preview_image_url : null);
-            const fabricReferenceUrl = item.fabric_reference_url;
-            const previewVideoUrl = item.preview_video_url ?? (typeof design.preview_video_url === 'string' ? design.preview_video_url : null);
+            const designSummary = designDisplayForOrderItem(item);
+            const designName = designSummary.name;
+            const styleCategory = designSummary.category;
+            const previewImageUrl = designSummary.designImageUrl;
+            const fabricReferenceUrl = designSummary.fabricImageUrl;
+            const previewVideoUrl = designSummary.previewVideoUrl;
+            const designDetails = displayEntries(recordFromUnknown(item.design_snapshot), { hiddenKeys: ['style_metadata', 'tags'] });
+            const measurementDetails = displayEntries(measurementSnapshot);
+            const styleDetails = displayEntries(styleSnapshot);
+            const fitDetails = previewSummaryEntries(previewSummary);
 
             return (
             <article key={item.id} className="break-inside-avoid rounded-lg border border-slate-200 p-4">
@@ -178,11 +182,20 @@ export function OrderDetailPage() {
                   previewSummary={previewSummary}
                   compact
                 />
+              </div>              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <ImageReferencePanel title="Selected Design" imageUrl={previewImageUrl} emptyText="Image unavailable" details={[
+                  { key: 'design-name', label: 'Design', value: designName },
+                  ...(designSummary.code ? [{ key: 'design-code', label: 'Code', value: designSummary.code }] : []),
+                  ...(designSummary.category ? [{ key: 'design-category', label: 'Style Category', value: designSummary.category }] : []),
+                  ...designDetails.filter((entry) => !['Design Name', 'Design Code', 'Name', 'Code', 'Style Category'].includes(entry.label)),
+                ]} />
+                <ImageReferencePanel title="Fabric Reference" imageUrl={fabricReferenceUrl} emptyText="Skipped" details={[{ key: 'fabric-status', label: 'Status', value: designSummary.fabricStatus }]} />
               </div>
-              <Snapshot title="Design snapshot" values={design} />
-              <Snapshot title="Measurement snapshot" values={measurementSnapshot} />
-              <Snapshot title="Style snapshot" values={styleSnapshot} />
-              <Snapshot title="Preview summary" values={previewSummary} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <DisplaySection title="Style Choices" entries={styleDetails} emptyText="No style choices saved." />
+                <DisplaySection title="Measurements" entries={measurementDetails} emptyText="No measurement snapshot saved." />
+              </div>
+              <DisplaySection title="Fit / Preview Summary" entries={fitDetails} emptyText="No preview summary saved." />
               {item.special_instructions ? <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{item.special_instructions}</p> : null}
               <div className="no-print mt-4 flex flex-wrap gap-2">
                 {item.production_status !== 'ready' && item.production_status !== 'delivered' && item.production_status !== 'cancelled' ? (
@@ -245,17 +258,6 @@ export function OrderDetailPage() {
       </section>
     </div>
   );
-}
-
-function snapshotString(values: Record<string, unknown>, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = values[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return null;
 }
 
 const smsActions: { templateKey: SmsTemplateKey; label: string }[] = [
@@ -375,15 +377,61 @@ function Summary({ label, value }: { label: string; value: string }) {
   return <div className="rounded-lg bg-slate-50 p-3"><p className="text-xs uppercase text-slate-500">{label}</p><p className="mt-1 font-semibold text-slate-950">{value}</p></div>;
 }
 
-function Snapshot({ title, values }: { title: string; values: Record<string, unknown> }) {
-  const entries = Object.entries(values);
+function DisplaySection({ title, entries, emptyText }: { title: string; entries: DisplayEntry[]; emptyText: string }) {
   return (
-    <div className="mt-3 rounded-lg bg-slate-50 p-3">
-      <p className="text-sm font-semibold text-slate-800">{title}</p>
-      {entries.length === 0 ? <p className="mt-2 text-sm text-slate-500">No snapshot values.</p> : null}
-      <dl className="mt-2 grid gap-2 sm:grid-cols-2">
-        {entries.map(([key, value]) => <div key={key}><dt className="text-xs uppercase text-slate-500">{key}</dt><dd className="text-sm font-medium text-slate-800">{displayDynamicValue(value)}</dd></div>)}
+    <section className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+      {entries.length === 0 ? <p className="mt-2 text-sm text-slate-500">{emptyText}</p> : null}
+      {entries.length > 0 ? (
+        <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+          {entries.map((entry) => (
+            <div key={entry.key} className="min-w-0 rounded-lg bg-white px-3 py-2 shadow-sm">
+              <dt className="text-xs font-semibold uppercase text-slate-500">{entry.label}</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-900">{entry.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+    </section>
+  );
+}
+
+function ImageReferencePanel({ title, imageUrl, emptyText, details }: { title: string; imageUrl: string | null; emptyText: string; details: DisplayEntry[] }) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+        {imageUrl ? (
+          <a href={imageUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
+            <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+            Open image
+          </a>
+        ) : null}
+      </div>
+      <ReferenceImage src={imageUrl} alt={title} emptyText={emptyText} />
+      <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+        {details.map((entry) => (
+          <div key={entry.key} className="min-w-0 rounded-lg bg-white px-3 py-2 shadow-sm">
+            <dt className="text-xs font-semibold uppercase text-slate-500">{entry.label}</dt>
+            <dd className="mt-1 break-words text-sm font-medium text-slate-900">{entry.value}</dd>
+          </div>
+        ))}
       </dl>
+    </section>
+  );
+}
+
+function ReferenceImage({ src, alt, emptyText }: { src: string | null; alt: string; emptyText: string }) {
+  const [isBroken, setIsBroken] = useState(false);
+
+  if (src && !isBroken) {
+    return <img src={src} alt={alt} className="mt-3 aspect-[5/3] w-full rounded-lg border border-slate-200 bg-white object-cover" loading="lazy" onError={() => setIsBroken(true)} />;
+  }
+
+  return (
+    <div aria-label={`${alt} unavailable`} className="mt-3 flex aspect-[5/3] w-full flex-col items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-4 text-center text-sm font-semibold text-slate-500">
+      <ImageOff aria-hidden="true" className="h-6 w-6 text-slate-400" />
+      {isBroken ? 'Image unavailable' : emptyText}
     </div>
   );
 }

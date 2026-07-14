@@ -1,4 +1,4 @@
-/// <reference types="node" />
+﻿/// <reference types="node" />
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 describe('tailor order flow migration safeguards', () => {
   const migrationSql = readFileSync(join(process.cwd(), 'supabase/migrations/0005_tailor_order_flow_improvements.sql'), 'utf8');
   const designMigrationSql = readFileSync(join(process.cwd(), 'supabase/migrations/0006_design_preview_flow.sql'), 'utf8');
+  const dashboardRepairMigrationSql = readFileSync(join(process.cwd(), 'supabase/migrations/0009_tailor_dashboard_metrics_rpc.sql'), 'utf8');
 
   it('confirms delivery through a security definer function with due-balance checks', () => {
     expect(migrationSql).toContain('create or replace function public.confirm_order_delivery');
@@ -18,9 +19,13 @@ describe('tailor order flow migration safeguards', () => {
   });
 
   it('keeps dashboard metrics shop-scoped and authenticated', () => {
-    expect(migrationSql).toContain('create or replace function public.get_tailor_dashboard_metrics');
-    expect(migrationSql).toContain('public.is_active_shop_member(target_shop_id)');
-    expect(migrationSql).toContain('where orders.shop_id = target_shop_id');
+    expect(dashboardRepairMigrationSql).toContain('create or replace function public.get_tailor_dashboard_metrics');
+    expect(dashboardRepairMigrationSql).toContain('security definer');
+    expect(dashboardRepairMigrationSql).toContain('set search_path = public, pg_temp');
+    expect(dashboardRepairMigrationSql).toContain('public.is_active_shop_member(target_shop_id, auth.uid())');
+    expect(dashboardRepairMigrationSql).toContain('customer.shop_id = target_shop_id');
+    expect(dashboardRepairMigrationSql).toContain("notify pgrst, 'reload schema'");
+    expect(dashboardRepairMigrationSql).toContain('grant execute on function public.get_tailor_dashboard_metrics(uuid) to authenticated');
   });
 
   it('adds design preview tables with RLS and secure order snapshot validation', () => {

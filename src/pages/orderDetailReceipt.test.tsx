@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+﻿import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { OrderDetailPage } from './OrderDetailPage';
@@ -52,16 +52,21 @@ const orderDetail = {
       unit_price: 1500,
       line_total: 1500,
       measurement_set_id: 'measurement-1',
-      measurement_snapshot: { chest: 40, length: 29 },
-      style_snapshot: { sleeve_type: 'Full sleeve' },
+      measurement_snapshot: { chest: 40, length: 29, keyMeasurements: [{ label: 'Waist', value: 34 }] },
+      style_snapshot: { sleeve_type: 'Full sleeve', extras: [{ label: 'Collar', value: 'Band' }] },
       special_instructions: 'Use white buttons',
       assigned_to: 'worker-1',
       production_status: 'ready',
       item_delivery_date: '2026-07-12',
       design_reference_url: 'https://example.com/shirt.jpg',
       design_id: 'design-1',
-      design_snapshot: { design_name: 'Classic Shirt', design_code: 'SHIRT_CLASSIC', style_category: 'Classic', preview_image_url: 'https://example.com/shirt.jpg' },
-      preview_summary: { fit: 'Regular fit', measurement_count: 2 },
+      design_snapshot: { DESIGN_NAME: 'Classic Shirt', DESIGN_CODE: 'SHIRT_CLASSIC', STYLE_CATEGORY: 'Classic', DESIGNIMAGEURL: 'https://example.com/shirt.jpg' },
+      preview_summary: {
+        ESTIMATEDFIT: 'Regular fit',
+        KEYMEASUREMENTS: [{ label: 'Chest', value: 40 }],
+        STYLE_SUMMARY: ['Sleeve Type: Full sleeve'],
+        FABRICREFERENCEURL: 'https://example.com/cloth.jpg',
+      },
       fabric_reference_url: 'https://example.com/cloth.jpg',
       preview_video_url: null,
       created_at: '2026-07-08T08:00:00.000Z',
@@ -120,7 +125,6 @@ vi.mock('@tanstack/react-query', () => ({
   useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
-
 vi.mock('../features/sms/smsHooks', () => ({
   useOrderSmsLogs: () => ({ data: [], isLoading: false, error: null }),
   useSendOrderSms: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
@@ -134,7 +138,7 @@ vi.mock('../features/orders/orderHooks', () => ({
 }));
 
 describe('OrderDetailPage print section rendering', () => {
-  it('renders print-copy actions, snapshots, totals, and delivery action', () => {
+  it('renders professional item sections and never exposes raw snapshot internals', () => {
     render(
       <MemoryRouter initialEntries={['/orders/order-1?created=1']}>
         <Routes>
@@ -152,9 +156,16 @@ describe('OrderDetailPage print section rendering', () => {
     expect(screen.getByRole('link', { name: /^store copy$/i })).toHaveAttribute('href', '/orders/order-1/print/store-copy?autoprint=1');
     expect(screen.getByRole('link', { name: /print all copies/i })).toHaveAttribute('href', '/orders/order-1/print/all?autoprint=1');
     expect(screen.getByRole('link', { name: /open customer token preview/i })).toHaveAttribute('href', '/orders/order-1/print/customer-token');
-    expect(screen.getByText('Design snapshot')).toBeInTheDocument();
-    expect(screen.getByText('Measurement snapshot')).toBeInTheDocument();
-    expect(screen.getByText('Style snapshot')).toBeInTheDocument();
+    expect(screen.getAllByText('Selected Design').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Fabric Reference').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Style Choices').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Measurements').length).toBeGreaterThan(0);
+    expect(screen.getByText('Fit / Preview Summary')).toBeInTheDocument();
+    expect(screen.getAllByText('Open image').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /mark delivered/i })).toBeInTheDocument();
+
+    const renderedText = document.body.textContent ?? '';
+    expect(renderedText).not.toMatch(/DESIGNIMAGEURL|KEYMEASUREMENTS|ESTIMATEDFIT|STYLE_COUNT|FABRICREFERENCEURL|\[object Object\]|https:\/\/example\.com\/cloth\.jpg/);
   });
 });
+

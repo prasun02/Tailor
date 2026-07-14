@@ -1,5 +1,12 @@
-import { appBrand } from '../../app/brand';
+﻿import { appBrand } from '../../app/brand';
 import type { OrderDetail } from '../orders/orderService';
+import {
+  designDisplayForOrderItem,
+  displayEntries,
+  displayValue,
+  labelFromKey,
+  recordFromUnknown,
+} from '../orders/orderDisplayUtils';
 
 export type ShopBrand = {
   name: string;
@@ -20,6 +27,7 @@ export type PrintItemDesign = {
   category: string | null;
   designImageUrl: string | null;
   fabricImageUrl: string | null;
+  fabricStatus: 'Added' | 'Skipped';
 };
 
 type OrderItem = OrderDetail['items'][number];
@@ -73,83 +81,22 @@ export function fallbackShopBrand(name?: string | null): ShopBrand {
   return withShopBrandDefaults({ name });
 }
 
-
 export function recordFromPrintValue(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return {};
-  }
-
-  return value as Record<string, unknown>;
+  return recordFromUnknown(value);
 }
 
-export function labelFromKey(key: string): string {
-  return key
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
+export { labelFromKey };
 
 export function printValue(value: unknown): string {
-  if (value === null || value === undefined || value === '') {
-    return '';
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(printValue).filter(Boolean).join(', ');
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No';
-  }
-
-  if (typeof value === 'object') {
-    return '';
-  }
-
-  return String(value);
+  return displayValue(value);
 }
 
 export function snapshotEntries(values: Record<string, unknown>): PrintEntry[] {
-  return Object.entries(values)
-    .map(([key, value]) => ({ key, label: labelFromKey(key), value: printValue(value) }))
-    .filter((entry) => entry.value.trim().length > 0);
-}
-
-function stringFromRecord(record: Record<string, unknown>, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return null;
+  return displayEntries(values);
 }
 
 export function designForPrint(item: OrderItem): PrintItemDesign {
-  const design = recordFromPrintValue(item.design_snapshot);
-  const previewSummary = recordFromPrintValue(item.preview_summary);
-  const name =
-    stringFromRecord(design, ['design_name', 'name', 'selectedDesign', 'design']) ??
-    stringFromRecord(previewSummary, ['selectedDesign', 'design']) ??
-    'Custom design';
-  const code = stringFromRecord(design, ['design_code', 'code']);
-  const category =
-    stringFromRecord(design, ['style_category', 'styleCategory']) ??
-    stringFromRecord(previewSummary, ['styleCategory', 'style_category']);
-  const designImageUrl =
-    item.design_reference_url?.trim() ||
-    stringFromRecord(design, ['preview_image_url', 'designImageUrl']) ||
-    stringFromRecord(previewSummary, ['designImageUrl']) ||
-    null;
-  const fabricImageUrl =
-    item.fabric_reference_url?.trim() ||
-    stringFromRecord(previewSummary, ['fabricReferenceUrl', 'fabric_reference_url']) ||
-    null;
-
-  return { name, code, category, designImageUrl, fabricImageUrl };
+  return designDisplayForOrderItem(item);
 }
 
 export function shortUserId(value: string | null | undefined): string {

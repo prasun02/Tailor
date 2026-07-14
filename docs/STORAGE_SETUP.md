@@ -1,6 +1,6 @@
-# Supabase Storage Setup
+﻿# Supabase Storage Setup
 
-Tailor Store Manager uses Supabase Storage for garment design images and per-order customer fabric references. URL entry remains available when storage is not configured.
+Faabrico uses Supabase Storage for garment design images and per-order customer fabric references. URL entry remains available when storage is not configured.
 
 ## Buckets
 
@@ -112,3 +112,4 @@ For production with stricter privacy requirements:
 5. Add stricter storage policies that validate both bucket id and shop id folder membership.
 
 This keeps the MVP free and simple while leaving a clear upgrade path for private media.
+

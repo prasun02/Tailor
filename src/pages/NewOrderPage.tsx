@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -25,7 +25,7 @@ import type { Customer, CustomerListItem } from '../features/customers/customerS
 import { useGarmentDesigns } from '../features/designs/designHooks';
 import type { GarmentDesign } from '../features/designs/types';
 import { DynamicField } from '../features/measurements/components/DynamicField';
-import { displayDynamicValue, jsonObject, optionObjects } from '../features/measurements/components/display';
+import { jsonObject, optionObjects } from '../features/measurements/components/display';
 import { useMeasurementFields, useStyleFields } from '../features/measurements/configurationHooks';
 import { validateFabricReferenceDetails, validateMeasurementDetails, validateStyleOptionDetails } from '../features/orders/orderFlowValidation';
 import { createMeasurementVersion } from '../features/measurements/measurementService';
@@ -43,6 +43,7 @@ import {
   type OrderWizardValues,
 } from '../features/orders/orderSchemas';
 import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
+import { displayEntries } from '../features/orders/orderDisplayUtils';
 import { buildPreviewSummary, designSnapshot, measurementValuesForItem, recordFromUnknown } from '../features/preview/previewUtils';
 import { uploadImageToStorage, validateImageFile } from '../features/uploads/imageUpload';
 import { useShop } from '../features/shop/shopContext';
@@ -990,7 +991,7 @@ function TagList({ tags }: { tags: string[] }) {
   );
 }
 
-function ThumbnailImage({ src, className }: { src?: string | null; className: string }) {
+function ThumbnailImage({ src, className, emptyText = 'Image unavailable' }: { src?: string | null; className: string; emptyText?: string }) {
   const [isBroken, setIsBroken] = useState(false);
 
   if (src && !isBroken) {
@@ -998,17 +999,19 @@ function ThumbnailImage({ src, className }: { src?: string | null; className: st
   }
 
   return (
-    <div aria-label="Image unavailable" className={cn(className, 'flex items-center justify-center bg-slate-100 p-4')}>
-      <div className="relative h-20 w-16">
-        <div className="absolute left-1/2 top-2 h-16 w-11 -translate-x-1/2 rounded-t-2xl rounded-b-lg border border-brand-700/20 bg-white shadow-panel" />
-        <div className="absolute left-0 top-6 h-10 w-4 -rotate-12 rounded-lg border border-brand-700/20 bg-white" />
-        <div className="absolute right-0 top-6 h-10 w-4 rotate-12 rounded-lg border border-brand-700/20 bg-white" />
-        <div className="absolute left-1/2 top-4 h-3 w-7 -translate-x-1/2 rounded-b-full border border-brand-700/20 bg-brand-50" />
+    <div aria-label={isBroken ? 'Image unavailable' : emptyText} className={cn(className, 'flex items-center justify-center bg-slate-100 p-4')}>
+      <div className="flex flex-col items-center gap-2 text-center text-sm font-semibold text-slate-500">
+        <span>{isBroken ? 'Image unavailable' : emptyText}</span>
+        <div className="relative h-20 w-16">
+          <div className="absolute left-1/2 top-2 h-16 w-11 -translate-x-1/2 rounded-t-2xl rounded-b-lg border border-brand-700/20 bg-white shadow-panel" />
+          <div className="absolute left-0 top-6 h-10 w-4 -rotate-12 rounded-lg border border-brand-700/20 bg-white" />
+          <div className="absolute right-0 top-6 h-10 w-4 rotate-12 rounded-lg border border-brand-700/20 bg-white" />
+          <div className="absolute left-1/2 top-4 h-3 w-7 -translate-x-1/2 rounded-b-full border border-brand-700/20 bg-brand-50" />
+        </div>
       </div>
     </div>
   );
 }
-
 function DesignPreviewModal({
   target,
   isSelected,
@@ -1636,7 +1639,7 @@ function FabricReferenceSection({
           </label>
           {item.fabricReferenceUrl ? (
             <div className="space-y-2">
-              <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
+              <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" emptyText="Skipped" />
               <button type="button" onClick={() => onUpdate({ fabricReferenceUrl: '' })} className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-lg border border-brand-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-brand-50">
                 <X aria-hidden="true" className="h-4 w-4" />
                 Remove
@@ -1652,7 +1655,7 @@ function FabricReferenceSection({
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_12rem]">
           <TextField label="Fabric image URL" placeholder="Paste fabric/reference image URL" value={item.fabricReferenceUrl ?? ''} error={error} onChange={(event) => onUpdate({ fabricReferenceMode: 'url', fabricReferenceUrl: event.target.value })} />
           {item.fabricReferenceUrl ? (
-            <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
+            <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" emptyText="Skipped" />
           ) : (
             <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-brand-300 bg-brand-50 text-sm text-slate-500">No URL</div>
           )}
@@ -1695,7 +1698,7 @@ function ItemPreviewSummary({
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Fabric / Cloth Reference</p>
-            <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" />
+            <ThumbnailImage src={item.fabricReferenceUrl} className="h-32 w-full rounded-lg border border-slate-200" emptyText="Skipped" />
           </div>
         </div>
         <div className="grid content-center gap-2 text-sm">
@@ -1952,7 +1955,7 @@ export function FinalPreviewStep({
                   </div>
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase text-slate-500">Fabric</p>
-                    <ThumbnailImage src={fabricReferenceUrl} className="h-28 w-full rounded-lg border border-slate-200" />
+                    <ThumbnailImage src={fabricReferenceUrl} className="h-28 w-full rounded-lg border border-slate-200" emptyText="Skipped" />
                   </div>
                 </div>
 
@@ -2056,24 +2059,23 @@ function Summary({ label, value }: { label: string; value: string }) {
 }
 
 function Snapshot({ title, values }: { title: string; values: Record<string, unknown> }) {
-  const entries = Object.entries(values).filter(([, value]) => value !== '' && value !== null && value !== undefined);
+  const entries = displayEntries(values);
   if (entries.length === 0) return null;
 
   return (
     <div className="mt-3 rounded-lg border border-brand-200 bg-white p-3 text-sm shadow-sm">
       <p className="font-semibold text-slate-900">{title}</p>
       <dl className="mt-2 grid gap-2 sm:grid-cols-2">
-        {entries.map(([key, value]) => (
-          <div key={key} className="min-w-0 rounded-lg bg-brand-50 px-3 py-2">
-            <dt className="text-xs font-semibold uppercase text-slate-500">{key}</dt>
-            <dd className="mt-1 break-words font-medium text-slate-900">{displayDynamicValue(value)}</dd>
+        {entries.map((entry) => (
+          <div key={entry.key} className="min-w-0 rounded-lg bg-brand-50 px-3 py-2">
+            <dt className="text-xs font-semibold uppercase text-slate-500">{entry.label}</dt>
+            <dd className="mt-1 break-words font-medium text-slate-900">{entry.value}</dd>
           </div>
         ))}
       </dl>
     </div>
   );
 }
-
 function SummaryLine({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 justify-between gap-3 rounded-lg bg-white px-3 py-2 shadow-sm">
@@ -2082,3 +2084,6 @@ function SummaryLine({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+
+

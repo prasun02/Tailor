@@ -1,4 +1,4 @@
-import { AlertTriangle, Banknote, CalendarClock, Images, PackageCheck, Plus, Search, Shirt, Sparkles } from 'lucide-react';
+﻿import { AlertTriangle, Banknote, CalendarClock, Images, PackageCheck, Plus, Search, Shirt, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { appBrand } from '../app/brand';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -64,9 +64,10 @@ export function DashboardPage() {
       {metricsQuery.isError ? <EmptyState icon={AlertTriangle} title="Could not load metrics" message={metricsQuery.error.message} /> : null}
 
       {metrics ? (
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           <Metric label="New orders today" value={metrics.newOrdersToday} />
           <Metric label="Delivery today" value={metrics.deliveryToday} tone="blue" />
+          <Metric label="Delivery tomorrow" value={metrics.deliveryTomorrow} tone="blue" />
           <Metric label="Overdue orders" value={metrics.overdueOrders} tone="red" />
           <Metric label="Ready for delivery" value={metrics.readyForDelivery} tone="green" />
           <Metric label="Total due amount" value={formatCurrency(metrics.totalDueAmount)} tone="amber" />
@@ -75,6 +76,8 @@ export function DashboardPage() {
           <Metric label="In finishing" value={metrics.itemsInFinishing} />
           <Metric label="Sales this month" value={formatCurrency(metrics.salesThisMonth)} />
           <Metric label="Orders this month" value={metrics.ordersThisMonth} />
+          <Metric label="Customers" value={metrics.customerCount} />
+          <Metric label="Active production" value={metrics.productionActiveCount} />
         </section>
       ) : null}
 
@@ -153,3 +156,5 @@ function ProductionList({ title, items, empty }: { title: string; items: Product
     </div>
   );
 }
+
+

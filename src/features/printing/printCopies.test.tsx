@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+﻿import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { OrderDetail } from '../orders/orderService';
 import { AllPrintCopies } from './AllPrintCopies';
@@ -63,8 +63,8 @@ const detail: OrderDetail = {
       unit_price: 1500,
       line_total: 1500,
       measurement_set_id: 'measurement-1',
-      measurement_snapshot: { chest: 44, length: 29 },
-      style_snapshot: { sleeve_type: 'Full sleeve', collar: 'Classic' },
+      measurement_snapshot: { chest: 44, length: 29, keyMeasurements: [{ label: 'Waist', value: 34 }] },
+      style_snapshot: { sleeve_type: 'Full sleeve', collar: 'Classic', extras: [{ label: 'Pocket', value: 'Single' }] },
       special_instructions: 'Use white buttons',
       assigned_to: 'worker-123456',
       production_status: 'ready',
@@ -126,6 +126,7 @@ describe('print copies', () => {
     expect(screen.queryByText('Chest')).not.toBeInTheDocument();
     expect(screen.queryByText('Full sleeve')).not.toBeInTheDocument();
     expect(screen.queryByText('Use white buttons')).not.toBeInTheDocument();
+    expect(document.body.textContent ?? '').not.toMatch(/\[object Object\]|preview_image_url|fabric_reference_url/);
   });
 
   it('renders a production copy with snapshots and without pricing', () => {
@@ -145,6 +146,7 @@ describe('print copies', () => {
     expect(screen.queryByText('Advance Paid')).not.toBeInTheDocument();
     expect(screen.queryByText('Due Amount')).not.toBeInTheDocument();
     expect(screen.queryByText(/BDT/)).not.toBeInTheDocument();
+    expect(document.body.textContent ?? '').not.toMatch(/\[object Object\]|preview_image_url|fabric_reference_url/);
     expect(screen.getByText('[ ] Cutting')).toBeInTheDocument();
     expect(screen.getByText('[ ] Stitching')).toBeInTheDocument();
     expect(screen.getByText('[ ] Finishing')).toBeInTheDocument();
@@ -218,6 +220,9 @@ describe('print copies', () => {
     expect(screen.getByText('Snapshot Design (SNAP-1)')).toBeInTheDocument();
     expect(screen.getByText('46')).toBeInTheDocument();
     expect(screen.getByText('Band')).toBeInTheDocument();
-    expect(screen.getAllByText('No image').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Image unavailable')).toBeInTheDocument();
+    expect(screen.getByText('Skipped')).toBeInTheDocument();
   });
 });
+
+

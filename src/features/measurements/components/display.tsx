@@ -1,24 +1,48 @@
-import type { ReactElement } from 'react';
+﻿import type { ReactElement } from 'react';
 import type { Json } from '../../../types/database';
 import { getStyleOptions } from '../dynamicValidation';
 import type { MeasurementField, StyleField } from '../types';
 import { MissingValue } from './DynamicField';
 import { displayFieldLabel } from '../labelUtils';
 
-export function displayDynamicValue(value: unknown): string | ReactElement {
+function valueToText(value: unknown): string {
   if (value === null || value === undefined || value === '') {
-    return <MissingValue />;
+    return '';
   }
 
   if (Array.isArray(value)) {
-    return value.length > 0 ? value.join(', ') : <MissingValue />;
+    return value.map(valueToText).filter(Boolean).join(', ');
   }
 
   if (typeof value === 'boolean') {
     return value ? 'Yes' : 'No';
   }
 
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const label = typeof record.label === 'string' ? record.label.trim() : '';
+    const displayValue = valueToText(record.value);
+
+    if (label && displayValue) {
+      return `${label}: ${displayValue}`;
+    }
+
+    return Object.entries(record)
+      .filter(([key]) => !/url|id|created|updated/i.test(key))
+      .map(([key, entryValue]) => {
+        const text = valueToText(entryValue);
+        return text ? `${key}: ${text}` : '';
+      })
+      .filter(Boolean)
+      .join(', ');
+  }
+
   return String(value);
+}
+
+export function displayDynamicValue(value: unknown): string | ReactElement {
+  const text = valueToText(value);
+  return text || <MissingValue />;
 }
 
 export function optionObjects(options: unknown): { label: string; value: string }[] {

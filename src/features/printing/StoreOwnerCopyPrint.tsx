@@ -1,4 +1,4 @@
-import type { OrderDetail } from '../orders/orderService';
+﻿import type { OrderDetail } from '../orders/orderService';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
@@ -80,7 +80,7 @@ export function StoreOwnerCopyPrint({ detail, shop, printedBy = 'Current user', 
                 <div className="print-section">
                   <div className="print-image-row">
                     <PrintImageThumb src={design.designImageUrl} label="Design Thumbnail" compact />
-                    <PrintImageThumb src={design.fabricImageUrl} label="Fabric Thumbnail" compact />
+                    <PrintImageThumb src={design.fabricImageUrl} label="Fabric Thumbnail" compact emptyText={design.fabricStatus} />
                   </div>
                 </div>
                 {item.special_instructions ? (

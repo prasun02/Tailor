@@ -1,4 +1,4 @@
-import { addDays, format } from 'date-fns';
+﻿import { addDays, format } from 'date-fns';
 import type { Json, PaymentMethod, ProductionStatus, ShopRole } from '../../types/database';
 import { getSupabaseClient } from '../../services/supabaseClient';
 import { buildCustomerSearchOrFilter } from '../customers/customerService';
@@ -78,6 +78,8 @@ export type DashboardMetrics = {
   totalDueAmount: number;
   salesThisMonth: number;
   ordersThisMonth: number;
+  customerCount: number;
+  productionActiveCount: number;
 };
 
 export type ProductionItem = OrderItemRow & {
@@ -294,17 +296,19 @@ export async function getTailorDashboardMetrics(shopId: string): Promise<Dashboa
   const metrics = jsonObject(data as Json);
 
   return {
-    newOrdersToday: toNumber(metrics.new_orders_today),
-    deliveryToday: toNumber(metrics.delivery_today),
-    deliveryTomorrow: toNumber(metrics.delivery_tomorrow),
+    newOrdersToday: toNumber(metrics.new_orders_today ?? metrics.orders_today),
+    deliveryToday: toNumber(metrics.delivery_today ?? metrics.deliveries_today),
+    deliveryTomorrow: toNumber(metrics.delivery_tomorrow ?? metrics.deliveries_tomorrow),
     overdueOrders: toNumber(metrics.overdue_orders),
     readyForDelivery: toNumber(metrics.ready_for_delivery),
-    itemsInCutting: toNumber(metrics.items_in_cutting),
-    itemsInStitching: toNumber(metrics.items_in_stitching),
-    itemsInFinishing: toNumber(metrics.items_in_finishing),
+    itemsInCutting: toNumber(metrics.items_in_cutting ?? metrics.cutting_count),
+    itemsInStitching: toNumber(metrics.items_in_stitching ?? metrics.stitching_count),
+    itemsInFinishing: toNumber(metrics.items_in_finishing ?? metrics.finishing_count),
     totalDueAmount: toNumber(metrics.total_due_amount),
-    salesThisMonth: toNumber(metrics.sales_this_month),
-    ordersThisMonth: toNumber(metrics.orders_this_month),
+    salesThisMonth: toNumber(metrics.sales_this_month ?? metrics.monthly_sales),
+    ordersThisMonth: toNumber(metrics.orders_this_month ?? metrics.monthly_order_count),
+    customerCount: toNumber(metrics.customer_count),
+    productionActiveCount: toNumber(metrics.production_active_count),
   };
 }
 
@@ -702,3 +706,5 @@ export function jsonObject(value: Json): Record<string, unknown> {
 
   return value as Record<string, unknown>;
 }
+
+

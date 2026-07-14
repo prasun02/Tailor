@@ -1,4 +1,4 @@
-import { ImageOff, Maximize2, PlayCircle, X } from 'lucide-react';
+﻿import { ExternalLink, ImageOff, Maximize2, PlayCircle, X } from 'lucide-react';
 import { useId, useState } from 'react';
 import { cn } from '../../utils/cn';
 import { FitSummary } from './FitSummary';
@@ -94,7 +94,7 @@ export function GarmentPreviewCard({
                 label={fabricLabel}
                 imageUrl={metadata.fabricReferenceUrl}
                 emptyText={fabricSkippedText}
-                detail={metadata.fabricReferenceUrl ?? metadata.fabricReferenceStatus}
+                detail={metadata.fabricReferenceStatus}
                 dark
                 compactImage
               />
@@ -209,7 +209,15 @@ function MediaPanel({
           emptyText={emptyText}
         />
       </div>
-      <p className={cn('mt-2 break-all text-xs font-medium', dark ? 'text-brand-100' : 'text-slate-600')}>{detail}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+        <p className={cn('text-xs font-medium', dark ? 'text-brand-100' : 'text-slate-600')}>{detail}</p>
+        {imageUrl ? (
+          <a href={imageUrl} target="_blank" rel="noreferrer" className={cn('inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold', dark ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-white text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50')}>
+            <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+            Open image
+          </a>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -274,7 +282,7 @@ function BigPreviewModal({
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <MediaPanel label="Selected Design" imageUrl={metadata.designImageUrl} emptyText="No selected design image" detail={metadata.selectedDesign} />
-              <MediaPanel label={fabricLabel} imageUrl={metadata.fabricReferenceUrl} emptyText={fabricSkippedText} detail={metadata.fabricReferenceUrl ?? metadata.fabricReferenceStatus} />
+              <MediaPanel label={fabricLabel} imageUrl={metadata.fabricReferenceUrl} emptyText={fabricSkippedText} detail={metadata.fabricReferenceStatus} />
             </div>
             <GarmentMockup metadata={metadata} />
           </div>

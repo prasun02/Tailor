@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+﻿import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -234,7 +234,8 @@ describe('New order style, measurement, and fabric flow', () => {
     expect(screen.getByText('Fabric / Cloth Reference')).toBeInTheDocument();
     expect(screen.getAllByText(/Full sleeve/).length).toBeGreaterThan(0);
     expect(screen.getByText('29')).toBeInTheDocument();
-    expect(screen.getByText('https://example.com/fabric.jpg')).toBeInTheDocument();
+    expect(screen.queryByText('https://example.com/fabric.jpg')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /open image/i }).some((link) => link.getAttribute('href') === 'https://example.com/fabric.jpg')).toBe(true);
     expect(screen.getByText('Estimated preview only. Final fitting depends on tailoring.')).toBeInTheDocument();
     expect(container.querySelector('img[src="https://example.com/shirt.jpg"]')).not.toBeNull();
     expect(container.querySelector('img[src="https://example.com/fabric.jpg"]')).not.toBeNull();
