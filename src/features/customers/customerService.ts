@@ -20,7 +20,7 @@ type SupabaseErrorLike = {
 
 const PAGE_SIZE = 10;
 const CUSTOMER_SELECT =
-  'id, shop_id, customer_code, name, normalized_name, phone, normalized_phone, alternative_phone, address, notes, is_active, created_by, created_at, updated_at, deleted_at';
+  'id, shop_id, customer_code, name, normalized_name, phone, normalized_phone, alternative_phone, email, address, notes, is_active, created_by, created_at, updated_at, deleted_at';
 const ORDER_SELECT =
   'id, shop_id, order_number, customer_id, order_date, trial_date, delivery_date, priority, overall_status, subtotal, discount_amount, total_amount, notes, created_by, delivered_at, created_at, updated_at, deleted_at';
 const PAYMENT_SELECT =
@@ -112,6 +112,7 @@ function generateCustomerCode(): string {
 function toCustomerInsert(shopId: string, values: CustomerFormValues, userId?: string | null): CustomerInsert {
   const phone = normalizePhoneInput(values.phone);
   const alternativePhone = normalizePhoneInput(values.alternativePhone);
+  const email = optionalTrimmed(values.email)?.toLowerCase() ?? null;
   const name = values.name.trim().replace(/\s+/g, ' ');
 
   return {
@@ -122,6 +123,7 @@ function toCustomerInsert(shopId: string, values: CustomerFormValues, userId?: s
     phone,
     normalized_phone: normalizePhone(phone),
     alternative_phone: alternativePhone,
+    email,
     address: optionalTrimmed(values.address),
     notes: optionalTrimmed(values.notes),
     is_active: true,
@@ -132,6 +134,7 @@ function toCustomerInsert(shopId: string, values: CustomerFormValues, userId?: s
 function toCustomerUpdate(values: CustomerFormValues): CustomerUpdate {
   const phone = normalizePhoneInput(values.phone);
   const alternativePhone = normalizePhoneInput(values.alternativePhone);
+  const email = optionalTrimmed(values.email)?.toLowerCase() ?? null;
   const name = values.name.trim().replace(/\s+/g, ' ');
 
   return {
@@ -140,6 +143,7 @@ function toCustomerUpdate(values: CustomerFormValues): CustomerUpdate {
     phone,
     normalized_phone: normalizePhone(phone),
     alternative_phone: alternativePhone,
+    email,
     address: optionalTrimmed(values.address),
     notes: optionalTrimmed(values.notes),
   };

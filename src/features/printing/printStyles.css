@@ -1,5 +1,5 @@
 .print-workspace {
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-toolbar {
@@ -13,7 +13,7 @@
 
 .print-document {
   background: #ffffff;
-  border: 1px solid #E5E0D6;
+  border: 1px solid #D9E1E7;
   box-shadow: 0 1px 3px rgba(6, 47, 47, 0.08);
 }
 
@@ -35,7 +35,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-header {
@@ -43,7 +43,7 @@
   gap: 0.55rem;
   align-items: flex-start;
   justify-content: space-between;
-  border-bottom: 2px solid #062F2F;
+  border-bottom: 2px solid #062F35;
   padding-bottom: 0.48rem;
 }
 
@@ -61,9 +61,9 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid #062F2F;
-  background: #062F2F;
-  color: #F7F5EF;
+  border: 1px solid #062F35;
+  background: #062F35;
+  color: #F8FAFC;
   font-weight: 800;
 }
 .print-logo img {
@@ -76,18 +76,18 @@
   font-size: 1.02rem;
   font-weight: 800;
   line-height: 1.15;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-muted {
-  color: #5B6470;
+  color: #64748B;
 }
 
 .print-token-number {
   font-size: 1.12rem;
   font-weight: 800;
   line-height: 1.05;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-meta-grid {
@@ -97,7 +97,7 @@
 }
 
 .print-meta-box {
-  border: 1px solid #E5E0D6;
+  border: 1px solid #D9E1E7;
   background: #ffffff;
   padding: 0.32rem;
 }
@@ -108,14 +108,14 @@
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #5B6470;
+  color: #64748B;
 }
 
 .print-value {
   margin-top: 0.08rem;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-section {
@@ -128,7 +128,7 @@
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-table {
@@ -139,16 +139,16 @@
 
 .print-table th,
 .print-table td {
-  border: 1px solid #E5E0D6;
+  border: 1px solid #D9E1E7;
   padding: 0.18rem 0.24rem;
   text-align: left;
   vertical-align: top;
 }
 
 .print-table th {
-  background: #F7F5EF;
+  background: #F8FAFC;
   font-weight: 800;
-  color: #062F2F;
+  color: #062F35;
 }
 
 .print-image-row {
@@ -166,7 +166,7 @@
 .print-image-empty {
   width: 3.65rem;
   height: 3.65rem;
-  border: 1px solid #B8A987;
+  border: 1px solid #D9E1E7;
   object-fit: contain;
 }
 
@@ -185,7 +185,7 @@
   margin-top: 0.08rem;
   font-size: 0.58rem;
   font-weight: 700;
-  color: #5B6470;
+  color: #64748B;
 }
 
 .print-image-thumb--compact,
@@ -201,13 +201,13 @@
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  border-bottom: 1px dashed #B8A987;
+  border-bottom: 1px dashed #D9E1E7;
   padding: 0.16rem 0;
   font-size: 0.72rem;
 }
 
 .print-amount-row strong {
-  color: #1F2933;
+  color: #10202A;
 }
 
 .print-signature-grid,
@@ -223,12 +223,12 @@
 }
 
 .print-signature-line {
-  border-top: 1px solid #062F2F;
+  border-top: 1px solid #062F35;
   padding-top: 0.14rem;
   text-align: center;
   font-size: 0.62rem;
   font-weight: 700;
-  color: #062F2F;
+  color: #062F35;
 }
 
 .print-check-grid {
@@ -236,11 +236,11 @@
 }
 
 .print-check-item {
-  border: 1px solid #B8A987;
+  border: 1px solid #D9E1E7;
   padding: 0.24rem;
   font-size: 0.66rem;
   font-weight: 800;
-  color: #1F2933;
+  color: #10202A;
 }
 
 .production-layout,
@@ -253,7 +253,7 @@
 .print-item-card {
   break-inside: avoid;
   page-break-inside: avoid;
-  border: 1px solid #B8A987;
+  border: 1px solid #D9E1E7;
   padding: 0.34rem;
 }
 
@@ -264,7 +264,7 @@
 }
 
 .print-note-box {
-  border: 1px solid #B8A987;
+  border: 1px solid #D9E1E7;
   background: #ffffff;
   padding: 0.32rem;
   font-size: 0.68rem;
@@ -369,4 +369,12 @@
   .print-check-grid {
     grid-template-columns: 1fr;
   }
+}
+.design-sheet-print-grid .print-meta-box {
+  padding: 0.12in;
+}
+
+.design-sheet-print-grid .print-value {
+  font-size: 8.5pt;
+  line-height: 1.25;
 }

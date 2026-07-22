@@ -1,16 +1,15 @@
-﻿import type { OrderDetail } from '../orders/orderService';
+import type { OrderDetail } from '../orders/orderService';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
+import { PrintDesignSelectionSummary } from './PrintDesignSelectionSummary';
 import { PrintImageThumb } from './PrintImageThumb';
 import { PrintMeasurementTable } from './PrintMeasurementTable';
-import { PrintStyleSummary } from './PrintStyleSummary';
 import {
   designForPrint,
   latestCompletedPayment,
   paymentMethodLabel,
   printedAtDhaka,
   recordFromPrintValue,
-  shortUserId,
   withShopBrandDefaults,
   type ShopBrand,
 } from './printModel';
@@ -38,7 +37,6 @@ export function StoreOwnerCopyPrint({ detail, shop, printedBy = 'Current user', 
         <Meta label="Order Date" value={formatDate(order.order_date)} />
         <Meta label="Trial Date" value={formatDate(order.trial_date)} />
         <Meta label="Delivery Date" value={formatDate(order.delivery_date)} />
-        <Meta label="Created By" value={shortUserId(order.created_by)} />
         <Meta label="Printed By" value={printedBy} />
         <Meta label="Printed Date/Time" value={printedAtDhaka(printedAt)} />
         <Meta label="Payment Method" value={latestPayment ? paymentMethodLabel(latestPayment.payment_method) : 'Not paid'} />
@@ -73,7 +71,7 @@ export function StoreOwnerCopyPrint({ detail, shop, printedBy = 'Current user', 
                   <Meta label="Unit Price" value={formatCurrency(item.unit_price)} />
                   <Meta label="Line Total" value={formatCurrency(item.line_total)} />
                   <Meta label="Design" value={designLabel} />
-                  <Meta label="Assigned Worker" value={shortUserId(item.assigned_to)} />
+                  <Meta label="Assigned Worker" value={item.assigned_to ? 'Assigned' : 'Unassigned'} />
                   <Meta label="Production Status" value={item.production_status.replace(/_/g, ' ')} />
                   <Meta label="Item Delivery" value={formatDate(item.item_delivery_date ?? order.delivery_date)} />
                 </div>
@@ -97,8 +95,8 @@ export function StoreOwnerCopyPrint({ detail, shop, printedBy = 'Current user', 
           {items.map((item) => (
             <article key={item.id} className="print-item-card print-section">
               <h2 className="print-section-title">{item.garment_name_snapshot} Details</h2>
+              <PrintDesignSelectionSummary snapshot={item.design_snapshot} title="Full Design Selection" />
               <PrintMeasurementTable values={recordFromPrintValue(item.measurement_snapshot)} title="Full Measurements" />
-              <PrintStyleSummary values={recordFromPrintValue(item.style_snapshot)} title="Style Options" />
             </article>
           ))}
         </section>

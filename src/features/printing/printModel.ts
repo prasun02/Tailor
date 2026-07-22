@@ -1,4 +1,4 @@
-﻿import { appBrand } from '../../app/brand';
+import { appBrand } from '../../app/brand';
 import type { OrderDetail } from '../orders/orderService';
 import {
   designDisplayForOrderItem,
@@ -7,6 +7,7 @@ import {
   labelFromKey,
   recordFromUnknown,
 } from '../orders/orderDisplayUtils';
+import { designSummaryFromSnapshot } from '../design-selection/designSelectionUtils';
 
 export type ShopBrand = {
   name: string;
@@ -28,6 +29,7 @@ export type PrintItemDesign = {
   designImageUrl: string | null;
   fabricImageUrl: string | null;
   fabricStatus: 'Added' | 'Skipped';
+  summary: string;
 };
 
 type OrderItem = OrderDetail['items'][number];
@@ -96,7 +98,9 @@ export function snapshotEntries(values: Record<string, unknown>): PrintEntry[] {
 }
 
 export function designForPrint(item: OrderItem): PrintItemDesign {
-  return designDisplayForOrderItem(item);
+  const design = designDisplayForOrderItem(item);
+
+  return { ...design, summary: designSummaryFromSnapshot(item.design_snapshot) };
 }
 
 export function shortUserId(value: string | null | undefined): string {

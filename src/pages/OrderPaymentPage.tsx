@@ -1,4 +1,4 @@
-import { Banknote, ShieldAlert } from 'lucide-react';
+﻿import { Banknote, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -19,7 +19,7 @@ export function OrderPaymentPage() {
   const [values, setValues] = useState<PaymentFormValues>({ amount: 0, paymentMethod: 'cash', reference: '', notes: '', allowOverpayment: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  if (!canRecordPayments(currentRole)) return <EmptyState icon={ShieldAlert} title="Payments are restricted" message="Only owners, managers, and staff can record payments." />;
+  if (!canRecordPayments(currentRole)) return <EmptyState icon={ShieldAlert} title="Payments are restricted" message="Only owners and managers can record payments." />;
   if (orderQuery.isLoading) return <Loading label="Loading order payment" />;
   if (orderQuery.isError || !orderQuery.data) return <EmptyState icon={ShieldAlert} title="Order not found" message={orderQuery.error?.message ?? 'Order could not be loaded.'} />;
 
@@ -54,3 +54,4 @@ export function OrderPaymentPage() {
     </div>
   );
 }
+

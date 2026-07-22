@@ -1,4 +1,4 @@
-﻿import { LogOut, Menu, X } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { appBrand } from '../app/brand';
@@ -7,22 +7,23 @@ import { useAuth } from '../features/auth/authContext';
 import { useShop } from '../features/shop/shopContext';
 import { resolveShopBrand, useShopBrand } from '../features/printing/useShopBrand';
 import type { ShopBrand } from '../features/printing/printModel';
-import { appNavigation, type NavigationItem } from '../routes/navigation';
+import { navigationForRole, type NavigationItem } from '../routes/navigation';
 import { cn } from '../utils/cn';
 
 export function AuthenticatedLayout() {
   const { signOut, user } = useAuth();
-  const { currentShop, currentShopId, hasMultipleShops, memberships, setCurrentShopId } = useShop();
+  const { currentRole, currentShop, currentShopId, hasMultipleShops, memberships, setCurrentShopId } = useShop();
   const brandQuery = useShopBrand(currentShopId, currentShop);
   const shellBrand = resolveShopBrand(brandQuery.data, currentShop);
+  const navigationItems = navigationForRole(currentRole);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-brand-50 text-slate-950 lg:grid lg:grid-cols-[17rem_1fr]">
-      <aside className="sticky top-0 hidden h-screen flex-col border-r border-brand-800 bg-brand-900 px-4 py-5 text-white lg:flex">
+    <div className="min-h-screen bg-[var(--app-bg)] text-slate-950 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
+      <aside className="sticky top-0 hidden h-screen flex-col border-r border-white/10 bg-[var(--sidebar-bg)] px-3 py-4 text-white lg:flex">
         <BrandLockup brand={shellBrand} />
-        <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Main navigation">
-          {appNavigation.map((item) => (
+        <nav className="mt-4 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Main navigation">
+          {navigationItems.map((item) => (
             <DesktopNavItem key={item.to} item={item} />
           ))}
         </nav>
@@ -30,8 +31,8 @@ export function AuthenticatedLayout() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-30 border-b border-brand-800 bg-brand-900 text-white shadow-premium no-print lg:static">
-          <div className="flex min-h-16 items-center justify-between gap-3 px-4 lg:px-8">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-[var(--header-bg)] text-white shadow-premium no-print lg:static">
+          <div className="flex min-h-14 items-center justify-between gap-3 px-4 lg:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -82,7 +83,7 @@ export function AuthenticatedLayout() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-5 sm:py-8 lg:px-8">
+        <main className="w-full px-4 py-4 sm:py-5 lg:px-5">
           <Outlet />
         </main>
       </div>
@@ -90,15 +91,15 @@ export function AuthenticatedLayout() {
       {isMobileNavOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Mobile navigation">
           <button type="button" className="absolute inset-0 bg-slate-950/55" aria-label="Close navigation" onClick={() => setIsMobileNavOpen(false)} />
-          <aside className="relative flex h-full w-[min(19rem,88vw)] flex-col border-r border-brand-800 bg-brand-900 px-4 py-5 text-white shadow-xl">
+          <aside className="relative flex h-full w-[min(19rem,88vw)] flex-col border-r border-white/10 bg-[var(--sidebar-bg)] px-4 py-5 text-white shadow-xl">
             <div className="flex items-start justify-between gap-3">
               <BrandLockup brand={shellBrand} />
               <button type="button" onClick={() => setIsMobileNavOpen(false)} title="Close navigation" className="flex h-10 w-10 items-center justify-center rounded-lg text-brand-100 hover:bg-white/10">
                 <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
-            <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Mobile main navigation">
-              {appNavigation.map((item) => (
+            <nav className="mt-4 flex-1 space-y-1 overflow-y-auto pb-4" aria-label="Mobile main navigation">
+              {navigationItems.map((item) => (
                 <DesktopNavItem key={item.to} item={item} onNavigate={() => setIsMobileNavOpen(false)} />
               ))}
             </nav>
@@ -120,11 +121,11 @@ function BrandLockup({ brand, compact = false }: { brand: ShopBrand; compact?: b
   }
 
   return (
-    <div className="min-w-0 space-y-3">
+    <div className="min-w-0 space-y-2">
       <BrandMark name={brand.name} logoUrl={brand.logo_url} className="min-w-0 w-full bg-brand-800" />
       <div className="min-w-0">
-        <p className="text-xl font-semibold leading-6 text-white">{brand.name}</p>
-        <p className="mt-1 text-xs leading-5 text-brand-100">{appBrand.subtitle}</p>
+        <p className="text-lg font-semibold leading-6 text-white">{brand.name}</p>
+        <p className="mt-0.5 text-xs leading-5 text-brand-100">{appBrand.subtitle}</p>
       </div>
     </div>
   );
@@ -165,3 +166,4 @@ function DesktopNavItem({ item, onNavigate }: { item: NavigationItem; onNavigate
     </NavLink>
   );
 }
+

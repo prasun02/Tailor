@@ -6,6 +6,7 @@ export function customerToFormValues(customer: Customer): CustomerFormValues {
     name: customer.name,
     phone: customer.phone ?? '',
     alternativePhone: customer.alternative_phone ?? '',
+    email: customer.email ?? '',
     address: customer.address ?? '',
     notes: customer.notes ?? '',
   };

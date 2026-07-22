@@ -1,4 +1,4 @@
-﻿import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { GarmentDesign } from '../features/designs/types';
 import type { GarmentType, MeasurementField, MeasurementSet, StyleField } from '../features/measurements/types';
 import { emptyOrderItem, emptyOrderWizardValues, type OrderItemFormValues } from '../features/orders/orderSchemas';
-import { FabricReferenceStep, FinalPreviewStep, MeasurementStep, PreviewGarmentStep, StyleOptionsStep } from './NewOrderPage';
+import { FabricReferenceStep, FinalPreviewStep, MeasurementStep, PaymentDeliveryStep, PreviewGarmentStep, StyleOptionsStep } from './NewOrderPage';
 
 const mocks = vi.hoisted(() => ({
   styleFields: [
@@ -105,6 +105,32 @@ const designs: GarmentDesign[] = [
 
 const measurements: MeasurementSet[] = [];
 
+const visualDesignSnapshot = {
+  source: 'built_in_catalog',
+  garmentType: 'Shirt',
+  garmentFamily: 'shirt',
+  design_name: 'Shirt Design Details',
+  design_code: 'BUILT_IN_SHIRT_DESIGN',
+  name: 'Shirt Design Details',
+  code: 'BUILT_IN_SHIRT_DESIGN',
+  categories: [
+    {
+      categoryKey: 'collar_type',
+      categoryName: 'Collar Type',
+      selectionType: 'single',
+      selectedOptions: [
+        {
+          optionKey: 'spread_collar',
+          optionName: 'Spread Collar',
+          description: 'Spread Collar for collar type.',
+          svgIconKey: 'collar_type_spread_collar',
+          imageUrl: null,
+        },
+      ],
+    },
+  ],
+  summary: 'Spread Collar',
+};
 function item(values: Partial<OrderItemFormValues> = {}): OrderItemFormValues {
   return {
     ...emptyOrderItem(),
@@ -115,6 +141,7 @@ function item(values: Partial<OrderItemFormValues> = {}): OrderItemFormValues {
     measurementValues: { shirt_length: 29 },
     styleValues: { sleeve_type: 'Full sleeve' },
     fabricReferenceMode: 'skip',
+    designSnapshot: visualDesignSnapshot,
     ...values,
   };
 }
@@ -127,7 +154,6 @@ function StyleHarness({ initialItem = item(), errors = {} }: { initialItem?: Ord
       <StyleOptionsStep
         items={items}
         garments={garments}
-        designs={designs}
         errors={errors}
         onUpdateItem={(itemId, patch) => setItems((current) => current.map((entry) => (entry.id === itemId ? { ...entry, ...patch } : entry)))}
       />
@@ -144,7 +170,6 @@ function MeasurementHarness({ initialItem = item(), errors = {} }: { initialItem
         customerId="customer-1"
         items={items}
         garments={garments}
-        designs={designs}
         measurements={measurements}
         defaultUnit="inch"
         errors={errors}
@@ -162,7 +187,6 @@ function FabricHarness({ initialItem = item(), errors = {} }: { initialItem?: Or
       <FabricReferenceStep
         items={items}
         garments={garments}
-        designs={designs}
         measurements={measurements}
         errors={errors}
         onFabricUploadStateChange={vi.fn()}
@@ -181,12 +205,14 @@ describe('New order style, measurement, and fabric flow', () => {
       </>,
     );
 
-    const styleHeading = screen.getAllByRole('heading', { name: 'Style Options' })[0];
-    const measurementHeading = screen.getByRole('heading', { name: 'Measurements' });
+    const styleIntro = screen.getByText(/Select the garment style choices after design selection/i);
+    const measurementIntro = screen.getByText(/Enter garment-specific measurements with the selected design summary visible/i);
 
-    expect(styleHeading.compareDocumentPosition(measurementHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(styleIntro.compareDocumentPosition(measurementIntro) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByLabelText(/Sleeve type/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Shirt length/i)).toBeInTheDocument();
+    expect(screen.getByText('Measurement focus from selected design')).toBeInTheDocument();
+    expect(screen.getByText(/Full Sleeve selected: include sleeve length, cuff, and wrist\./i)).toBeInTheDocument();
     expect(screen.queryByText(/\?{2,}/)).not.toBeInTheDocument();
   });
 
@@ -198,16 +224,16 @@ describe('New order style, measurement, and fabric flow', () => {
       </>,
     );
 
-    const measurementHeading = screen.getByRole('heading', { name: 'Measurements' });
-    const fabricHeading = screen.getAllByRole('heading', { name: 'Fabric / Cloth Reference' })[0];
+    const measurementIntro = screen.getByText(/Enter garment-specific measurements with the selected design summary visible/i);
+    const fabricIntro = screen.getByText(/Add the actual customer-selected cloth reference after measurements/i);
 
-    expect(measurementHeading.compareDocumentPosition(fabricHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(measurementIntro.compareDocumentPosition(fabricIntro) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows fabric URL preview and keeps skip as a non-blocking choice', async () => {
     const user = userEvent.setup();
     const { container } = render(<FabricHarness />);
-    const fabricSection = screen.getAllByRole('heading', { name: 'Fabric / Cloth Reference' })[1].closest('section');
+    const fabricSection = screen.getByRole('heading', { name: 'Fabric / Cloth Reference' }).closest('section');
 
     if (!fabricSection) throw new Error('Expected the fabric reference section to render.');
     expect(within(fabricSection).getAllByText('Skipped').length).toBeGreaterThan(0);
@@ -233,10 +259,11 @@ describe('New order style, measurement, and fabric flow', () => {
     expect(screen.getByText('Selected Design')).toBeInTheDocument();
     expect(screen.getByText('Fabric / Cloth Reference')).toBeInTheDocument();
     expect(screen.getAllByText(/Full sleeve/).length).toBeGreaterThan(0);
-    expect(screen.getByText('29')).toBeInTheDocument();
+    expect(screen.getAllByText(/Spread Collar/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('29').length).toBeGreaterThan(0);
     expect(screen.queryByText('https://example.com/fabric.jpg')).not.toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /open image/i }).some((link) => link.getAttribute('href') === 'https://example.com/fabric.jpg')).toBe(true);
-    expect(screen.getByText('Estimated preview only. Final fitting depends on tailoring.')).toBeInTheDocument();
+    expect(screen.getByText('Estimated visual preview. Final fitting depends on tailoring and fabric behavior.')).toBeInTheDocument();
     expect(container.querySelector('img[src="https://example.com/shirt.jpg"]')).not.toBeNull();
     expect(container.querySelector('img[src="https://example.com/fabric.jpg"]')).not.toBeNull();
   });
@@ -289,7 +316,7 @@ describe('New order style, measurement, and fabric flow', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /back to style/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /back to design details/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /back to measurement/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^continue$/i })).toBeInTheDocument();
   });
@@ -309,10 +336,9 @@ describe('New order style, measurement, and fabric flow', () => {
     render(
       <FinalPreviewStep
         values={values}
-        customerDraft={{ name: 'Nila Akter', phone: '01712345678', alternativePhone: '', address: 'Dhaka', notes: '' }}
+        customerDraft={{ name: 'Nila Akter', phone: '01712345678', alternativePhone: '', email: '', address: 'Dhaka', notes: '' }}
         selectedCustomer={null}
         garments={garments}
-        designs={designs}
         measurements={measurements}
         subtotalValue={1500}
         totalValue={1400}
@@ -320,13 +346,53 @@ describe('New order style, measurement, and fabric flow', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', { name: 'Customer Summary' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Order Summary' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Garment Items' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Payment Summary' })).toBeInTheDocument();
+    expect(screen.getByText('Faabrico')).toBeInTheDocument();
+    expect(screen.getByText('Bespoke Tailoring Order & Production Desk')).toBeInTheDocument();
+    expect(screen.getByText('Customer Information')).toBeInTheDocument();
+    expect(screen.getByText('Garment Information')).toBeInTheDocument();
+    expect(screen.getByText('Design Selection Summary')).toBeInTheDocument();
+    expect(screen.getByText('Measurement Summary')).toBeInTheDocument();
+    expect(screen.getByText('Fabric Reference')).toBeInTheDocument();
+    expect(screen.getByText('Estimated Visual Preview')).toBeInTheDocument();
+    expect(screen.getByText('Payment Summary')).toBeInTheDocument();
     expect(screen.getByText('Will be generated')).toBeInTheDocument();
-    expect(screen.getByText('Full sleeve formal shirt (SH_005)')).toBeInTheDocument();
-    expect(screen.getByText('Compact style summary')).toBeInTheDocument();
-    expect(screen.getByText('Compact measurement summary')).toBeInTheDocument();
+    expect(screen.getAllByText('Spread Collar').length).toBeGreaterThan(0);
     expect(screen.getByText('Use white buttons')).toBeInTheDocument();
-  });});
+    expect(screen.queryByText('[object Object]')).not.toBeInTheDocument();
+    expect(screen.queryByText('Estimated visual preview. Final fitting depends on tailoring and fabric behavior.')).not.toBeInTheDocument();
+  });
+  it('keeps pricing, payment, delivery, worker, and priority fields in Payment + Delivery', () => {
+    function PaymentHarness() {
+      const [values, setValues] = useState({
+        ...emptyOrderWizardValues(),
+        orderDate: '2026-07-08',
+        deliveryDate: '2026-07-12',
+        items: [item({ quantity: 1, unitPrice: 1500 })],
+      });
+
+      return (
+        <PaymentDeliveryStep
+          values={values}
+          garments={garments}
+          members={[{ user_id: 'worker-1', role: 'tailor' }]}
+          canAssign
+          setValues={setValues}
+          onUpdateItem={vi.fn()}
+          errors={{}}
+        />
+      );
+    }
+
+    render(<PaymentHarness />);
+
+    expect(screen.getByLabelText(/quantity/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/unit price/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/discount/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/advance payment/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/payment method/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/order date/i)).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/delivery date/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/assigned worker/i)).toBeInTheDocument();
+    expect(screen.getByText('Due')).toBeInTheDocument();
+  });
+});

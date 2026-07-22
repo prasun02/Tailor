@@ -1,8 +1,12 @@
-﻿import type { Json } from '../../types/database';
+import type { Json } from '../../types/database';
 import { stringFromRecord as displayStringFromRecord, valueFromRecord as displayValueFromRecord } from '../orders/orderDisplayUtils';
 import type { GarmentDesign } from '../designs/types';
 import type { MeasurementSet } from '../measurements/types';
 import type { OrderItemFormValues } from '../orders/orderSchemas';
+import {
+  designSummaryFromSnapshot,
+  styleValuesFromDesignSnapshot,
+} from '../design-selection/designSelectionUtils';
 
 export type PreviewRecord = Record<string, unknown>;
 
@@ -29,7 +33,7 @@ export type PreviewMetadata = {
   warning: string;
 };
 
-export const ESTIMATED_PREVIEW_WARNING = 'Estimated preview only. Final fitting depends on tailoring.';
+export const ESTIMATED_PREVIEW_WARNING = 'Estimated visual preview. Final fitting depends on tailoring and fabric behavior.';
 
 const garmentMeasurementPriority: Record<string, string[]> = {
   shirt: ['chest', 'body_chest', 'waist', 'shirt_length', 'length', 'sleeve_length', 'shoulder'],
@@ -370,7 +374,9 @@ export function buildPreviewSummary({
   measurementValues: PreviewRecord;
 }): PreviewRecord {
   const metadata = recordFromUnknown(design?.style_metadata as Json | undefined);
-  const combinedStyleValues = { ...metadata, ...item.styleValues };
+  const designDetailValues = styleValuesFromDesignSnapshot(item.designSnapshot);
+  const designDetailSummary = designSummaryFromSnapshot(item.designSnapshot);
+  const combinedStyleValues = { ...metadata, ...designDetailValues, ...item.styleValues };
   const fit = fitLabelForPreview(design, item.styleValues, measurementValues);
   const metadataPreview = buildPreviewMetadata({
     garmentName,
@@ -404,6 +410,10 @@ export function buildPreviewSummary({
     measurement_summary: metadataPreview.keyMeasurements.map((measurement) => `${measurement.label}: ${measurement.value}`),
     styleSummary: metadataPreview.styleSummary,
     style_summary: metadataPreview.styleSummary,
+    designDetails: designDetailSummary,
+    design_details: designDetailSummary,
+    designSelections: designDetailValues,
+    design_selections: designDetailValues,
     visualNotes: metadataPreview.visualNotes,
     visual_notes: metadataPreview.visualNotes,
     measurement_count: metadataPreview.measurementCount,

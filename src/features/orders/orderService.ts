@@ -25,7 +25,7 @@ const ORDER_ITEM_SELECT =
 const PAYMENT_SELECT =
   'id, shop_id, order_id, amount, payment_method, payment_status, reference, notes, paid_at, received_by, voided_at, voided_by, void_reason, created_at';
 const CUSTOMER_SELECT =
-  'id, shop_id, customer_code, name, normalized_name, phone, normalized_phone, alternative_phone, address, notes, is_active, created_by, created_at, updated_at, deleted_at';
+  'id, shop_id, customer_code, name, normalized_name, phone, normalized_phone, alternative_phone, email, address, notes, is_active, created_by, created_at, updated_at, deleted_at';
 const HISTORY_SELECT = 'id, shop_id, order_id, order_item_id, previous_status, new_status, note, changed_by, changed_at';
 const MEASUREMENT_SELECT =
   'id, shop_id, customer_id, garment_type_id, version_number, unit, values, notes, measured_at, measured_by, is_current, created_at';

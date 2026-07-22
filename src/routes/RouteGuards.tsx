@@ -1,9 +1,11 @@
-import type { ReactNode } from 'react';
+﻿import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loading } from '../components/ui/Loading';
 import { useAuth } from '../features/auth/authContext';
 import { useShop } from '../features/shop/shopContext';
 import { ConfigurationErrorPage } from '../pages/ConfigurationErrorPage';
+import type { ShopRole } from '../types/database';
+import { defaultPathForRole, hasAnyRole } from '../utils/authorization';
 
 export function RequireConfiguration({ children }: { children: ReactNode }) {
   const { isConfigured } = useAuth();
@@ -68,4 +70,21 @@ export function RequireShop({ children }: { children: ReactNode }) {
   }
 
   return <Navigate to="/onboarding" replace />;
+}
+
+export function RequireRole({ children, allowedRoles }: { children: ReactNode; allowedRoles: ReadonlyArray<ShopRole> }) {
+  const { currentRole } = useShop();
+  const location = useLocation();
+
+  if (hasAnyRole(currentRole, allowedRoles)) {
+    return children;
+  }
+
+  return <Navigate to={defaultPathForRole(currentRole)} replace state={{ from: location, deniedPath: location.pathname }} />;
+}
+
+export function RoleHomeRedirect() {
+  const { currentRole } = useShop();
+
+  return <Navigate to={defaultPathForRole(currentRole)} replace />;
 }

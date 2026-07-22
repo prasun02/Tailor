@@ -286,6 +286,7 @@ export type Database = {
           phone: string | null;
           normalized_phone: string | null;
           alternative_phone: string | null;
+          email: string | null;
           address: string | null;
           notes: string | null;
           is_active: boolean;
@@ -303,6 +304,7 @@ export type Database = {
           phone?: string | null;
           normalized_phone?: string | null;
           alternative_phone?: string | null;
+          email?: string | null;
           address?: string | null;
           notes?: string | null;
           is_active?: boolean;

@@ -1,10 +1,10 @@
-﻿import type { OrderDetail } from '../orders/orderService';
+import type { OrderDetail } from '../orders/orderService';
 import { formatDate } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
+import { PrintDesignSelectionSummary } from './PrintDesignSelectionSummary';
 import { PrintImageThumb } from './PrintImageThumb';
 import { PrintMeasurementTable } from './PrintMeasurementTable';
-import { PrintStyleSummary } from './PrintStyleSummary';
-import { designForPrint, recordFromPrintValue, shortUserId, withShopBrandDefaults, type ShopBrand } from './printModel';
+import { designForPrint, recordFromPrintValue, withShopBrandDefaults, type ShopBrand } from './printModel';
 
 type ProductionJobCardPrintProps = {
   detail: OrderDetail;
@@ -39,7 +39,7 @@ export function ProductionJobCardPrint({ detail, shop }: ProductionJobCardPrintP
                   <Meta label="Garment" value={item.garment_name_snapshot} />
                   <Meta label="Quantity" value={String(item.quantity)} />
                   <Meta label="Design" value={designLabel} />
-                  <Meta label="Assigned Worker" value={shortUserId(item.assigned_to)} />
+                  <Meta label="Assigned Worker" value={item.assigned_to ? 'Assigned' : 'Unassigned'} />
                   <Meta label="Production Status" value={item.production_status.replace(/_/g, ' ')} />
                   <Meta label="Item Delivery" value={formatDate(item.item_delivery_date ?? order.delivery_date)} />
                 </div>
@@ -73,8 +73,8 @@ export function ProductionJobCardPrint({ detail, shop }: ProductionJobCardPrintP
           {items.map((item) => (
             <article key={item.id} className="print-item-card print-section">
               <h2 className="print-section-title">{item.garment_name_snapshot} Snapshot</h2>
+              <PrintDesignSelectionSummary snapshot={item.design_snapshot} title="Full Design Selection" />
               <PrintMeasurementTable values={recordFromPrintValue(item.measurement_snapshot)} title="Full Measurement Snapshot" />
-              <PrintStyleSummary values={recordFromPrintValue(item.style_snapshot)} title="Style Options" />
             </article>
           ))}
         </section>

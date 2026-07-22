@@ -1,4 +1,4 @@
-﻿import type { OrderDetail } from '../orders/orderService';
+import type { OrderDetail } from '../orders/orderService';
 import { formatCurrency, formatDate } from '../../utils/format';
 import { PrintHeader } from './PrintHeader';
 import { PrintImageThumb } from './PrintImageThumb';
@@ -40,12 +40,13 @@ export function CustomerTokenPrint({ detail, shop }: CustomerTokenPrintProps) {
             {items.map((item) => {
               const design = designForPrint(item);
               const designLabel = design.code ? `${design.name} (${design.code})` : design.name;
+              const customerDesignSummary = design.summary === 'No design details selected' ? designLabel : design.summary;
 
               return (
                 <tr key={item.id}>
                   <td>{item.garment_name_snapshot}</td>
                   <td>{item.quantity}</td>
-                  <td>{designLabel}</td>
+                  <td>{customerDesignSummary}</td>
                   <td>
                     <div className="print-image-row">
                       <PrintImageThumb src={design.designImageUrl} label="Design" compact />

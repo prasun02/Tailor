@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { OrderDetail } from '../orders/orderService';
 import { AllPrintCopies } from './AllPrintCopies';
@@ -44,6 +44,7 @@ const detail: OrderDetail = {
     phone: '01712345678',
     normalized_phone: '01712345678',
     alternative_phone: null,
+    email: null,
     address: 'Dhaka',
     notes: null,
     is_active: true,
@@ -76,6 +77,15 @@ const detail: OrderDetail = {
         design_code: 'SHIRT_CLASSIC',
         style_category: 'Classic',
         preview_image_url: 'https://example.com/shirt.jpg',
+        categories: [
+          {
+            categoryKey: 'collar_type',
+            categoryName: 'Collar Type',
+            selectionType: 'single',
+            selectedOptions: [{ optionKey: 'spread_collar', optionName: 'Spread Collar', description: 'Spread Collar', svgIconKey: 'collar_type_spread_collar' }],
+          },
+        ],
+        summary: 'Spread Collar',
       },
       preview_summary: { fit: 'Regular fit', measurement_count: 2 },
       fabric_reference_url: 'https://example.com/cloth.jpg',
@@ -124,6 +134,7 @@ describe('print copies', () => {
     expect(screen.getByText('Advance Paid')).toBeInTheDocument();
     expect(screen.getByText('Due Amount')).toBeInTheDocument();
     expect(screen.queryByText('Chest')).not.toBeInTheDocument();
+    expect(screen.getByText('Spread Collar')).toBeInTheDocument();
     expect(screen.queryByText('Full sleeve')).not.toBeInTheDocument();
     expect(screen.queryByText('Use white buttons')).not.toBeInTheDocument();
     expect(document.body.textContent ?? '').not.toMatch(/\[object Object\]|preview_image_url|fabric_reference_url/);
@@ -136,11 +147,12 @@ describe('print copies', () => {
     expect(screen.getByText('Faabrico')).toBeInTheDocument();
     expect(screen.getByText('+880 1714-793555')).toBeInTheDocument();
     expect(screen.getByText('5th Floor, Lake Manor, House 9 Rd 35, Gulshan 2, Dhaka')).toBeInTheDocument();
+    expect(screen.getByText('Full Design Selection')).toBeInTheDocument();
+    expect(screen.getByText('Collar Type')).toBeInTheDocument();
+    expect(screen.getByText('Spread Collar')).toBeInTheDocument();
     expect(screen.getByText('Full Measurement Snapshot')).toBeInTheDocument();
     expect(screen.getByText('Chest')).toBeInTheDocument();
     expect(screen.getByText('44')).toBeInTheDocument();
-    expect(screen.getByText('Sleeve Type')).toBeInTheDocument();
-    expect(screen.getByText('Full sleeve')).toBeInTheDocument();
     expect(screen.getByText('Use white buttons')).toBeInTheDocument();
     expect(screen.queryByText('Total Amount')).not.toBeInTheDocument();
     expect(screen.queryByText('Advance Paid')).not.toBeInTheDocument();
@@ -169,8 +181,11 @@ describe('print copies', () => {
     expect(screen.getAllByText('Payment Reference').length).toBeGreaterThan(0);
     expect(screen.getAllByText('TXN-1').length).toBeGreaterThan(0);
     expect(screen.getByText('owner@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Full Design Selection')).toBeInTheDocument();
+    expect(screen.getByText('Collar Type')).toBeInTheDocument();
+    expect(screen.getByText('Spread Collar')).toBeInTheDocument();
     expect(screen.getByText('Full Measurements')).toBeInTheDocument();
-    expect(screen.getByText('Full sleeve')).toBeInTheDocument();
+    expect(screen.queryByText('Full sleeve')).not.toBeInTheDocument();
   });
 
 
@@ -219,7 +234,7 @@ describe('print copies', () => {
 
     expect(screen.getByText('Snapshot Design (SNAP-1)')).toBeInTheDocument();
     expect(screen.getByText('46')).toBeInTheDocument();
-    expect(screen.getByText('Band')).toBeInTheDocument();
+    expect(screen.queryByText('Band')).not.toBeInTheDocument();
     expect(screen.getByText('Image unavailable')).toBeInTheDocument();
     expect(screen.getByText('Skipped')).toBeInTheDocument();
   });

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Archive,
   Banknote,
   CheckCircle2,
@@ -21,13 +21,13 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Loading } from '../components/ui/Loading';
 import { useArchiveOrder, useChangeOrderItemStatus, useConfirmOrderDelivery, useOrderDetail, useVoidOrderPayment } from '../features/orders/orderHooks';
 import { voidPaymentSchema } from '../features/orders/orderSchemas';
-import { GarmentPreviewCard } from '../features/preview/GarmentPreviewCard';
+import { SelectedDesignSummary as SelectedDesignDetailsSummary } from '../features/design-selection/SelectedDesignSummary';
 import { designDisplayForOrderItem, displayEntries, previewSummaryEntries, recordFromUnknown, type DisplayEntry } from '../features/orders/orderDisplayUtils';
 import { useShop } from '../features/shop/shopContext';
 import { useOrderSmsLogs, useSendOrderSms } from '../features/sms/smsHooks';
 import { smsTemplateLabels, type SmsLog } from '../features/sms/smsService';
-import type { SmsTemplateKey } from '../types/database';
-import { canArchiveOrders, canRecordPayments, canVoidPayments } from '../utils/authorization';
+import type { ShopRole, SmsTemplateKey } from '../types/database';
+import { CUSTOMER_TOKEN_PRINT_ROLES, PRODUCTION_PRINT_ROLES, STORE_PRINT_ROLES, canArchiveOrders, canRecordPayments, canVoidPayments, hasAnyRole } from '../utils/authorization';
 import { cn } from '../utils/cn';
 import { formatCurrency, formatDate, formatDateTime } from '../utils/format';
 
@@ -57,6 +57,7 @@ export function OrderDetailPage() {
 
   const detail = orderQuery.data;
   const { order, customer, items, payments, statusHistory, financial } = detail;
+  const productionSummary = Array.from(new Set(items.map((item) => item.production_status.replace(/_/g, ' ')))).join(', ') || 'No items';
 
   async function handleArchive() {
     if (!window.confirm('Archive this order? Payment and status history will remain available.')) return;
@@ -121,7 +122,35 @@ export function OrderDetailPage() {
         </div>
       </header>
 
-      <PrintCopiesPanel orderId={order.id} />
+      <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-panel md:grid-cols-2 xl:grid-cols-4">
+        <DetailInfoCard title="Customer Info" entries={[
+          { label: 'Name', value: customer?.name ?? 'Unknown customer' },
+          { label: 'Mobile', value: customer?.phone ?? 'Not set' },
+          { label: 'Alternative Mobile', value: customer?.alternative_phone ?? 'Not set' },
+          { label: 'Email', value: customer?.email ?? 'Not set' },
+          { label: 'Customer Code', value: customer?.customer_code ?? 'Not set' },
+        ]} />
+        <DetailInfoCard title="Order Info" entries={[
+          { label: 'Order Date', value: formatDate(order.order_date) },
+          { label: 'Trial Date', value: formatDate(order.trial_date) },
+          { label: 'Delivery Date', value: formatDate(order.delivery_date) },
+          { label: 'Priority', value: order.priority.replace(/_/g, ' ') },
+          { label: 'Order Status', value: order.overall_status.replace(/_/g, ' ') },
+        ]} />
+        <DetailInfoCard title="Payment Status" entries={[
+          { label: 'Total', value: formatCurrency(order.total_amount) },
+          { label: 'Paid', value: formatCurrency(financial.totalPaid) },
+          { label: 'Due', value: formatCurrency(financial.dueAmount) },
+          { label: 'Status', value: financial.paymentState },
+        ]} />
+        <DetailInfoCard title="Production Status" entries={[
+          { label: 'Garment Items', value: String(items.length) },
+          { label: 'Current Status', value: productionSummary },
+          { label: 'Print Copies', value: 'Customer, Production, Store' },
+        ]} />
+      </section>
+
+      <PrintCopiesPanel orderId={order.id} currentRole={currentRole} />
       <SmsPanel
         logs={smsLogsQuery.data ?? []}
         isLoading={smsLogsQuery.isLoading}
@@ -143,17 +172,12 @@ export function OrderDetailPage() {
         <div className="mt-4 space-y-4">
           {items.map((item) => {
             const measurementSnapshot = recordFromUnknown(item.measurement_snapshot);
-            const styleSnapshot = recordFromUnknown(item.style_snapshot);
             const previewSummary = recordFromUnknown(item.preview_summary);
             const designSummary = designDisplayForOrderItem(item);
             const designName = designSummary.name;
-            const styleCategory = designSummary.category;
             const previewImageUrl = designSummary.designImageUrl;
             const fabricReferenceUrl = designSummary.fabricImageUrl;
-            const previewVideoUrl = designSummary.previewVideoUrl;
-            const designDetails = displayEntries(recordFromUnknown(item.design_snapshot), { hiddenKeys: ['style_metadata', 'tags'] });
             const measurementDetails = displayEntries(measurementSnapshot);
-            const styleDetails = displayEntries(styleSnapshot);
             const fitDetails = previewSummaryEntries(previewSummary);
 
             return (
@@ -163,39 +187,26 @@ export function OrderDetailPage() {
                   <h3 className="font-semibold text-slate-950">{item.garment_name_snapshot}</h3>
                   <p className="mt-1 text-sm text-slate-600">Design: {designName}</p>
                   <p className="mt-1 text-sm text-slate-600">Quantity {item.quantity} - {formatCurrency(item.unit_price)} each - {formatCurrency(item.line_total)}</p>
-                  <p className="mt-1 text-sm text-slate-600">Production: {item.production_status} - Worker {item.assigned_to?.slice(0, 8) ?? 'Unassigned'}</p>
+                  <p className="mt-1 text-sm text-slate-600">Production: {item.production_status.replace(/_/g, ' ')} - Worker {item.assigned_to ? 'Assigned' : 'Unassigned'}</p>
                   <p className="mt-1 text-sm text-slate-600">Item delivery: {formatDate(item.item_delivery_date ?? order.delivery_date)}</p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{item.production_status.replace(/_/g, ' ')}</span>
               </div>
-              <div className="mt-3">
-                <GarmentPreviewCard
-                  title="Saved customer preview"
-                  garmentName={item.garment_name_snapshot}
-                  designName={designName}
-                  styleCategory={styleCategory}
-                  previewImageUrl={previewImageUrl}
-                  fabricReferenceUrl={fabricReferenceUrl}
-                  previewVideoUrl={previewVideoUrl}
-                  measurementValues={measurementSnapshot}
-                  styleValues={styleSnapshot}
-                  previewSummary={previewSummary}
-                  compact
-                />
-              </div>              <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <ImageReferencePanel title="Selected Design" imageUrl={previewImageUrl} emptyText="Image unavailable" details={[
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <ImageReferencePanel title="Selected Design" imageUrl={previewImageUrl} emptyText="No uploaded design image" details={[
                   { key: 'design-name', label: 'Design', value: designName },
                   ...(designSummary.code ? [{ key: 'design-code', label: 'Code', value: designSummary.code }] : []),
                   ...(designSummary.category ? [{ key: 'design-category', label: 'Style Category', value: designSummary.category }] : []),
-                  ...designDetails.filter((entry) => !['Design Name', 'Design Code', 'Name', 'Code', 'Style Category'].includes(entry.label)),
                 ]} />
                 <ImageReferencePanel title="Fabric Reference" imageUrl={fabricReferenceUrl} emptyText="Skipped" details={[{ key: 'fabric-status', label: 'Status', value: designSummary.fabricStatus }]} />
               </div>
-              <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <DisplaySection title="Style Choices" entries={styleDetails} emptyText="No style choices saved." />
-                <DisplaySection title="Measurements" entries={measurementDetails} emptyText="No measurement snapshot saved." />
+              <div className="mt-4">
+                <SelectedDesignDetailsSummary designSnapshot={recordFromUnknown(item.design_snapshot)} />
               </div>
-              <DisplaySection title="Fit / Preview Summary" entries={fitDetails} emptyText="No preview summary saved." />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <DisplaySection title="Measurements" entries={measurementDetails} emptyText="No measurement snapshot saved." />
+                <DisplaySection title="Fit / Preview Summary" entries={fitDetails} emptyText="No preview summary saved." />
+              </div>
               {item.special_instructions ? <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{item.special_instructions}</p> : null}
               <div className="no-print mt-4 flex flex-wrap gap-2">
                 {item.production_status !== 'ready' && item.production_status !== 'delivered' && item.production_status !== 'cancelled' ? (
@@ -334,7 +345,22 @@ function SmsPanel({
     </section>
   );
 }
-function PrintCopiesPanel({ orderId }: { orderId: string }) {
+function DetailInfoCard({ title, entries }: { title: string; entries: Array<{ label: string; value: string }> }) {
+  return (
+    <section className="min-w-0 rounded-md border border-slate-200 bg-slate-50 p-3">
+      <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
+      <dl className="mt-3 space-y-2">
+        {entries.map((entry) => (
+          <div key={entry.label} className="flex min-w-0 justify-between gap-3 text-sm">
+            <dt className="text-slate-500">{entry.label}</dt>
+            <dd className="break-words text-right font-semibold text-slate-950">{entry.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+function PrintCopiesPanel({ orderId, currentRole }: { orderId: string; currentRole: ShopRole | null }) {
   return (
     <section id="print-copies" className="no-print rounded-lg border border-slate-200 bg-white p-5 shadow-panel">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -348,10 +374,10 @@ function PrintCopiesPanel({ orderId }: { orderId: string }) {
         </Link>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <PrintCopyLink to={`/orders/${orderId}/print/customer-token?autoprint=1`} icon={ReceiptText} label="Customer Token" primary />
-        <PrintCopyLink to={`/orders/${orderId}/print/production-copy?autoprint=1`} icon={Scissors} label="Production Copy" />
-        <PrintCopyLink to={`/orders/${orderId}/print/store-copy?autoprint=1`} icon={Printer} label="Store Copy" />
-        <PrintCopyLink to={`/orders/${orderId}/print/all?autoprint=1`} icon={FileText} label="Print All Copies" />
+        {hasAnyRole(currentRole, CUSTOMER_TOKEN_PRINT_ROLES) ? <PrintCopyLink to={`/orders/${orderId}/print/customer-token?autoprint=1`} icon={ReceiptText} label="Customer Token" primary /> : null}
+        {hasAnyRole(currentRole, PRODUCTION_PRINT_ROLES) ? <PrintCopyLink to={`/orders/${orderId}/print/production-copy?autoprint=1`} icon={Scissors} label="Production Copy" /> : null}
+        {hasAnyRole(currentRole, STORE_PRINT_ROLES) ? <PrintCopyLink to={`/orders/${orderId}/print/store-copy?autoprint=1`} icon={Printer} label="Store Copy" /> : null}
+        {hasAnyRole(currentRole, STORE_PRINT_ROLES) ? <PrintCopyLink to={`/orders/${orderId}/print/all?autoprint=1`} icon={FileText} label="Print All Copies" /> : null}
       </div>
     </section>
   );
@@ -435,5 +461,8 @@ function ReferenceImage({ src, alt, emptyText }: { src: string | null; alt: stri
     </div>
   );
 }
+
+
+
 
 

@@ -33,6 +33,17 @@ describe('preview utilities', () => {
         ...emptyOrderItem(),
         styleValues: { sleeve_type: 'Full sleeve', fit: 'Slim' },
         fabricReferenceUrl: 'https://example.com/fabric.jpg',
+        designSnapshot: {
+          categories: [
+            {
+              categoryKey: 'collar_type',
+              categoryName: 'Collar Type',
+              selectionType: 'single',
+              selectedOptions: [{ optionKey: 'spread_collar', optionName: 'Spread Collar', description: 'Spread Collar', svgIconKey: 'collar_type_spread_collar' }],
+            },
+          ],
+          summary: 'Spread Collar',
+        },
       },
       measurementValues: { chest: 40, waist: 37, shirt_length: 29 },
     });
@@ -48,6 +59,8 @@ describe('preview utilities', () => {
       { key: 'shirt_length', label: 'Shirt Length', value: '29' },
     ]);
     expect(summary.styleSummary).toEqual(expect.arrayContaining(['Sleeve Type: Full sleeve', 'Fit: Slim fit']));
+    expect(summary.styleSummary).toEqual(expect.arrayContaining(['Collar Type: Spread Collar']));
+    expect(summary.designDetails).toBe('Spread Collar');
     expect(summary.visualNotes).toEqual(expect.arrayContaining(['Full sleeve selected', 'Customer fabric reference added']));
   });
 });

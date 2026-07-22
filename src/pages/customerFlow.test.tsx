@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => {
     phone: '01712345678',
     normalized_phone: '01712345678',
     alternative_phone: null,
+    email: null,
     address: 'Dhaka',
     notes: 'Prefers blue fabric',
     is_active: true,

@@ -76,6 +76,15 @@ export function CustomerForm({
           {...register('alternativePhone')}
         />
         <TextField
+          label="Email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="customer@example.com"
+          error={errors.email?.message}
+          {...register('email')}
+        />
+        <TextField
           label="Address"
           autoComplete="street-address"
           placeholder="House, road, area"

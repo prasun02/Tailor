@@ -33,6 +33,7 @@ const orderDetail = {
     phone: '01712345678',
     normalized_phone: '01712345678',
     alternative_phone: null,
+    email: null,
     address: 'Dhaka',
     notes: null,
     is_active: true,
